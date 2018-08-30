@@ -39,5 +39,6 @@ defaultConfig =
   , keybindings:
     [ Tuple.Tuple (Shortcut "ArrowLeft" true) Actions.goBack
     , Tuple.Tuple (Shortcut "ArrowRight" true) Actions.goForward
+    , Tuple.Tuple (Shortcut "i" true) Actions.openDevTools
     ]
   }

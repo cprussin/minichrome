@@ -26,8 +26,8 @@ exports.canGoBack = function (webContents) {
 
 exports.goBack = function (webContents) {
   return function () {
-    return webContents.goBack();
-  }
+    webContents.goBack();
+  };
 };
 
 exports.canGoForward = function (webContents) {
@@ -36,6 +36,20 @@ exports.canGoForward = function (webContents) {
 
 exports.goForward = function (webContents) {
   return function () {
-    return webContents.goForward();
-  }
+    webContents.goForward();
+  };
+};
+
+exports.openDevTools = function (webContents) {
+  return function () {
+    webContents.openDevTools({ mode: 'detach' });
+  };
+};
+
+exports.setDevToolsWebContents = function (webContents) {
+  return function (target) {
+    return function () {
+      webContents.setDevToolsWebContents(target);
+    };
+  };
 };

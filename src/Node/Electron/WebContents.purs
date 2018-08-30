@@ -7,6 +7,8 @@ module Node.Electron.WebContents
   , goBack
   , canGoForward
   , goForward
+  , openDevTools
+  , setDevToolsWebContents
   ) where
 
 import Prelude
@@ -53,3 +55,12 @@ foreign import canGoForward :: WebContents -> Boolean
 
 -- | Make the web contents go forward.
 foreign import goForward :: WebContents -> Effect.Effect Unit
+
+-- | Open the dev tools window for the web contents.
+foreign import openDevTools :: WebContents -> Effect.Effect Unit
+
+-- | Set the web contents target for the dev tools for the current wbe contents.
+foreign import setDevToolsWebContents ::
+  WebContents ->
+  WebContents ->
+  Effect.Effect Unit
