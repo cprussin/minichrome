@@ -1,4 +1,4 @@
-module Minichrome.CLI
+module Minichrome
   ( minichrome
   ) where
 

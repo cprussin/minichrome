@@ -9,10 +9,12 @@ module Node.Electron.WebContents
   , goForward
   , openDevTools
   , setDevToolsWebContents
+  , focusedWebContents
   ) where
 
 import Prelude
 
+import Data.Maybe as Maybe
 import Effect as Effect
 import Node.Electron.Event as Event
 
@@ -64,3 +66,13 @@ foreign import setDevToolsWebContents ::
   WebContents ->
   WebContents ->
   Effect.Effect Unit
+
+-- | Return the currently focused `WebContents`.
+foreign import focusedWebContentsImpl ::
+  (WebContents -> Maybe.Maybe WebContents) ->
+  (Maybe.Maybe WebContents) ->
+  Effect.Effect (Maybe.Maybe WebContents)
+
+-- | Return the currently focused `WebContents`.
+focusedWebContents :: Effect.Effect (Maybe.Maybe WebContents)
+focusedWebContents = focusedWebContentsImpl Maybe.Just Maybe.Nothing

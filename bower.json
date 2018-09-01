@@ -17,7 +17,10 @@
     "purescript-node-process": "^6.0.0",
     "purescript-prelude": "^4.1.0",
     "purescript-strings": "^4.0.0",
-    "purescript-tuples": "^5.0.0"
+    "purescript-tuples": "^5.0.0",
+    "purescript-halogen": "^4.0.0",
+    "purescript-halogen-css": "^8.0.0",
+    "purescript-css": "^4.0.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^4.0.0"

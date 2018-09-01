@@ -53,3 +53,16 @@ exports.setDevToolsWebContents = function (webContents) {
     };
   };
 };
+
+exports.focusedWebContentsImpl = function (Just) {
+  return function (Nothing) {
+    return function () {
+      var contents = require('electron').webContents.getFocusedWebContents();
+      if (contents) {
+        return Just(contents);
+      } else {
+        return Nothing;
+      }
+    };
+  };
+};

@@ -8,7 +8,7 @@ module Minichrome.Config
 import Data.Maybe as Maybe
 import Data.Tuple as Tuple
 
-import Minichrome.Actions as Actions
+import Minichrome.Server.Actions as Actions
 
 -- | This is the type of keyboard shortcuts.
 data Shortcut = Shortcut String Boolean

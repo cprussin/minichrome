@@ -12,7 +12,7 @@ import HTTPure ((!@))
 import Node.Electron.App as App
 
 import Minichrome.Config as Config
-import Minichrome.Window as Window
+import Minichrome.Server.Window as Window
 
 -- | Handle HTTP requests to open a new window to a URL given by the HTTP body.
 browse :: Config.Config -> HTTPure.Request -> HTTPure.ResponseM

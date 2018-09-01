@@ -3,11 +3,12 @@
   "version": "0.0.1",
   "author": "Connor Prussin <connor@prussin.net>",
   "license": "MIT",
+  "main": "index.js",
   "dependencies": {
     "electron": "^2.0.8"
   },
   "scripts": {
-    "start": "electron output",
-    "build": "pulp build --to output/index.js"
+    "start": "electron .",
+    "build": "pulp build --to index.js; pulp build --main Minichrome.UI --to ui.js"
   }
 }
