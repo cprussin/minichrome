@@ -6,20 +6,22 @@ module Minichrome.UI.State
 import Minichrome.UI.InputMode as InputMode
 
 -- | This record describes the state of the UI application.
-type State = Record
+type State =
   ( mode :: InputMode.Mode
   , title :: String
   , address :: String
   , position :: Int
+  , message :: String
   )
 
 foreign import initialURL :: String
 
 -- | This is the state to use when creating the app.
-initialState :: State
+initialState :: Record State
 initialState =
   { mode: InputMode.Normal
   , title: "minichrome"
   , address: initialURL
   , position: 0
+  , message: ""
   }

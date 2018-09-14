@@ -1,4 +1,4 @@
-module Minichrome.Client
+module Minichrome.CLI.Client
   ( run
   ) where
 
@@ -49,14 +49,11 @@ affRequest options body = Aff.makeAff $ \done -> do
   Stream.end stream $ pure unit
   pure Aff.nonCanceler
 
--- | `Console.log` lifted to `Aff`.
-affLog :: String -> Aff.Aff Unit
-affLog = Console.log >>> EffectClass.liftEffect
-
 -- | Make a request to the Minichrome server and print the server response.
 request :: String -> Config.Config -> String -> Aff.Aff Unit
 request path config body = affRequest options body >>= responseString >>= affLog
   where
+    affLog = Console.log >>> EffectClass.liftEffect
     responseString = HTTPClient.responseAsStream >>> streamToString
     options =
       HTTPClient.protocol := "http:" <>

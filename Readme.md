@@ -18,38 +18,12 @@ instance of Electron per window.
 To build `Minichrome`, run:
 
 ```sh
-bower install
-yarn install
 yarn build
 ```
 
 ## Configuring
 
-Configuration is heavily inspired by [XMonad](http://xmonad.org).  To use the
-default configuration, you don't need to do anything--Minichrome will run out of
-the box that way.  To modify the configuration, you'll want to create a
-PureScript entry point that looks something like this:
-
-```purescript
-module Main where
-
-import Prelude
-
-import Data.Tuple as Tuple
-import Effect as Effect
-import Minichrome.Actions as Actions
-import Minichrome.CLI as CLI
-import Minichrome.Config as Config
-
-main :: Effect.Effect Unit
-main = CLI.minichrome Config.defaultConfig
-  { port = 12312
-  , keybindings =
-    [ Tuple.Tuple (Config.Shortcut "h" true) Actions.goBack
-    , Tuple.Tuple (Config.Shortcut "l" true) Actions.goForward
-    ]
-  }
-```
+TODO
 
 ## CLI
 

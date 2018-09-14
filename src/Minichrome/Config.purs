@@ -8,14 +8,12 @@ module Minichrome.Config
 import Data.Maybe as Maybe
 import Data.Tuple as Tuple
 
-import Minichrome.Server.Actions as Actions
-
 -- | This is the type of keyboard shortcuts.
 data Shortcut = Shortcut String Boolean
 
 -- | This is the type of keybinding definitions--a tuple that maps a `Shortcut`
 -- | to an `Action`.
-type Keybinding = Tuple.Tuple Shortcut Actions.Action
+type Keybinding = Tuple.Tuple Shortcut String
 
 -- | This `Record` describes the Minichrome config.  Fields are:
 -- |
@@ -37,8 +35,8 @@ defaultConfig =
   { port: 42042
   , browser: Maybe.Nothing
   , keybindings:
-    [ Tuple.Tuple (Shortcut "ArrowLeft" true) Actions.goBack
-    , Tuple.Tuple (Shortcut "ArrowRight" true) Actions.goForward
-    , Tuple.Tuple (Shortcut "i" true) Actions.openDevTools
+    [ Tuple.Tuple (Shortcut "ArrowLeft" true) "back"
+    , Tuple.Tuple (Shortcut "ArrowRight" true) "forward"
+    , Tuple.Tuple (Shortcut "i" true) "dev-tools"
     ]
   }

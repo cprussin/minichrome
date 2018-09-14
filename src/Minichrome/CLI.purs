@@ -1,5 +1,5 @@
-module Minichrome
-  ( minichrome
+module Minichrome.CLI
+  ( main
   ) where
 
 import Prelude
@@ -11,9 +11,9 @@ import Data.String as String
 import Effect as Effect
 import Node.Process as Process
 
-import Minichrome.Client as Client
 import Minichrome.Config as Config
-import Minichrome.Server as Server
+import Minichrome.CLI.Client as Client
+import Minichrome.CLI.Server as Server
 
 -- | True if the argument array starts with a call to the `electron` executable
 -- | instead of the minichrome one.
@@ -39,11 +39,15 @@ shouldRunServer argv = Array.length argv == cliPrefixLength argv
 getClientArgs :: Array String -> Array String
 getClientArgs argv = Array.drop (cliPrefixLength argv) argv
 
--- | The entry point: takes a config `Record` and runs either the server or the
--- | client, depending on the CLI arguments.
-minichrome :: Config.Config -> Effect.Effect Unit
-minichrome config = do
+-- | Take a config `Record` and run either the server or the client, depending
+-- | on the CLI arguments.
+runCLI :: Config.Config -> Effect.Effect Unit
+runCLI config = do
   argv <- Process.argv
   if shouldRunServer argv
      then Server.start config
      else Client.run config $ getClientArgs argv
+
+-- | The entry point to the CLI.
+main :: Effect.Effect Unit
+main = runCLI Config.defaultConfig

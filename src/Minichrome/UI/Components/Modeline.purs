@@ -76,12 +76,10 @@ render input =
     ]
 
 eval :: forall m. Query ~> Halogen.ComponentDSL Input Query Void m
-eval =
-  case _ of
-    HandleInput n next -> do
-      oldN <- Halogen.get
-      when (oldN /= n) $ Halogen.put n
-      pure next
+eval (HandleInput n next) = do
+  oldN <- Halogen.get
+  when (oldN /= n) $ Halogen.put n
+  pure next
 
 modeline :: forall m. Halogen.Component HalogenHTML.HTML Query Input Void m
 modeline = Halogen.component

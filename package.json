@@ -9,6 +9,10 @@
   },
   "scripts": {
     "start": "electron .",
-    "build": "pulp build --to index.js; pulp build --main Minichrome.UI --to ui.js"
+    "clean": "rm -rf bower_components node_modules output *.js",
+    "dependencies:install": "bower install && yarn install",
+    "build:cli": "pulp build --main Minichrome.CLI --to index.js",
+    "build:ui": "pulp build --main Minichrome.UI --to ui.js",
+    "build": "yarn dependencies:install && yarn build:cli && yarn build:ui"
   }
 }
