@@ -1,5 +1,6 @@
 module Minichrome.CLI.Client
-  ( run
+  ( browse
+  , run
   ) where
 
 import Prelude

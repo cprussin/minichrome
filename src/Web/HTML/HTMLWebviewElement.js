@@ -24,6 +24,12 @@ exports.goForward = function (elem) {
   };
 };
 
+exports.isDevToolsOpened = function (elem) {
+  return function () {
+    return elem.isDevToolsOpened();
+  };
+};
+
 exports.openDevTools = function (elem) {
   return function () {
     elem.openDevTools();

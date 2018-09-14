@@ -17,7 +17,7 @@ import Minichrome.UI.Keybindings as Keybindings
 runUI :: Config.Config -> Effect.Effect Unit
 runUI config = HalogenAff.runHalogenAff do
   body <- HalogenAff.awaitBody
-  page <- VDomDriver.runUI Page.page unit body
+  page <- VDomDriver.runUI (Page.page config) unit body
   EffectClass.liftEffect $ Keybindings.attach config page.query
 
 -- | The entry point for booting the UI.

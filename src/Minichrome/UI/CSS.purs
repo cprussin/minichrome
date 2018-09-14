@@ -8,6 +8,8 @@ module Minichrome.UI.CSS
   , Cursor
   , cursor
   , defaultCursor
+  , TextOverflow(..)
+  , textOverflow
   ) where
 
 import Prelude
@@ -49,3 +51,28 @@ defaultCursor = Cursor $ CSS.fromString "default"
 -- | The `cursor` attribute itself.
 cursor :: Cursor -> CSS.CSS
 cursor = CSS.key $ CSS.fromString "cursor"
+
+data TextOverflow
+  = Clip
+  | Ellipsis
+  | Custom String
+
+derive instance eqTextOverflow :: Eq TextOverflow
+derive instance ordTextOverflow :: Ord TextOverflow
+
+instance valTextOverflow :: CSS.Val TextOverflow where
+  value Clip = CSS.fromString "clip"
+  value Ellipsis = CSS.fromString "ellipsis"
+  value (Custom v) = CSS.fromString $ CSS.quote v
+
+textOverflow :: TextOverflow -> CSS.CSS
+textOverflow = CSS.key $ CSS.fromString "text-overflow"
+
+clip :: TextOverflow
+clip = Clip
+
+ellipsis :: TextOverflow
+ellipsis = Ellipsis
+
+custom :: String -> TextOverflow
+custom = Custom

@@ -19,6 +19,7 @@ import Halogen.HTML.CSS as HalogenCSS
 import Halogen.HTML.Events as HalogenEvents
 import Halogen.Query.HalogenM as HalogenM
 
+import Minichrome.Config as Config
 import Minichrome.UI.CSS as MinichromeCSS
 import Minichrome.UI.State as State
 import Minichrome.UI.Components.Modeline as Modeline
@@ -52,8 +53,10 @@ messageline message =
     ]
     [ HalogenHTML.text message ]
 
-render :: State -> Halogen.ParentHTML Query ChildQuery ChildSlot Aff.Aff
-render state =
+render :: Config.Config ->
+          State ->
+          Halogen.ParentHTML Query ChildQuery ChildSlot Aff.Aff
+render config state =
   HalogenHTML.div
     [ HalogenCSS.style do
       CSS.height $ CSS.pct 100.0
@@ -67,7 +70,7 @@ render state =
         HalogenHTML.slot'
           ChildPath.cp1
           unit
-          Webview.webview
+          (Webview.webview config)
           { address: state.address }
           $ HalogenEvents.input HandleWebview
       modeline =
@@ -89,16 +92,15 @@ eval (HandleWebview (Webview.TitleUpdated title) next) = do
 eval (HandleWebview (Webview.URLUpdated url) next) = do
   Halogen.modify_ _{ address = url }
   pure next
+eval (HandleWebview (Webview.ShowMessage message) next) = do
+  eval $ ShowMessage message next
 eval (GoBack next) = do
-  eval $ ShowMessage "Going back..." unit
   _ <- Halogen.query' ChildPath.cp1 unit $ Halogen.request Webview.GoBack
   pure next
 eval (GoForward next) = do
-  eval $ ShowMessage "Going forward..." unit
   _ <- Halogen.query' ChildPath.cp1 unit $ Halogen.request Webview.GoForward
   pure next
 eval (OpenDevTools next) = do
-  eval $ ShowMessage "Opening dev tools..." unit
   _ <- Halogen.query' ChildPath.cp1 unit $ Halogen.request Webview.OpenDevTools
   pure next
 eval (ShowMessage message next) = do
@@ -114,8 +116,9 @@ eval (ShowMessage message next) = do
   Halogen.modify_ _{ message = message, messageCanceler = Maybe.Just canceler }
   pure next
 
-page :: Halogen.Component HalogenHTML.HTML Query Unit Void Aff.Aff
-page = Halogen.parentComponent
+page :: Config.Config ->
+        Halogen.Component HalogenHTML.HTML Query Unit Void Aff.Aff
+page config = Halogen.parentComponent
   { initialState: const
     { messageCanceler: Maybe.Nothing
     , mode: State.initialState.mode
@@ -124,7 +127,7 @@ page = Halogen.parentComponent
     , position: State.initialState.position
     , message: State.initialState.message
     }
-  , render
+  , render: render config
   , eval
   , receiver: const Maybe.Nothing
   }

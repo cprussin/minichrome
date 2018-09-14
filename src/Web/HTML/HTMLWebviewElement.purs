@@ -18,6 +18,7 @@ module Web.HTML.HTMLWebviewElement
   , goBack
   , canGoForward
   , goForward
+  , isDevToolsOpened
   , openDevTools
   , getURL
   ) where
@@ -81,5 +82,6 @@ foreign import canGoBack :: HTMLWebviewElement -> Effect.Effect Boolean
 foreign import goBack :: HTMLWebviewElement -> Effect.Effect Unit
 foreign import canGoForward :: HTMLWebviewElement -> Effect.Effect Boolean
 foreign import goForward :: HTMLWebviewElement -> Effect.Effect Unit
+foreign import isDevToolsOpened :: HTMLWebviewElement -> Effect.Effect Boolean
 foreign import openDevTools :: HTMLWebviewElement -> Effect.Effect Unit
 foreign import getURL :: HTMLWebviewElement -> Effect.Effect String

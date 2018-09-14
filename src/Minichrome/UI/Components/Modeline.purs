@@ -6,6 +6,7 @@ module Minichrome.UI.Components.Modeline
 import Prelude
 
 import CSS as CSS
+import CSS.Overflow as CSSOverflow
 import Halogen as Halogen
 import Halogen.HTML as HalogenHTML
 import Halogen.HTML.Events as HalogenEvents
@@ -61,10 +62,23 @@ render input =
       ]
       [ HalogenHTML.text $ show input.mode ]
     , HalogenHTML.span
-      [ HalogenCSS.style $ CSS.marginRight $ CSS.px 20.0 ]
+      [ HalogenCSS.style do
+        CSS.marginRight $ CSS.px 20.0
+        CSS.maxWidth $ CSS.pct 20.0
+        CSSOverflow.overflow CSSOverflow.hidden
+        MinichromeCSS.textOverflow MinichromeCSS.Ellipsis
+        CSS.textWhitespace CSS.whitespaceNoWrap
+      ]
       [ HalogenHTML.text input.title ]
     , HalogenHTML.span
-      [ HalogenCSS.style $ CSS.color CSS.blue ]
+      [ HalogenCSS.style do
+        CSS.color CSS.blue
+        CSSOverflow.overflow CSSOverflow.hidden
+        MinichromeCSS.textOverflow MinichromeCSS.Ellipsis
+        CSS.textWhitespace CSS.whitespaceNoWrap
+        CSS.maxWidth $ CSS.pct 60.0
+        CSS.marginRight $ CSS.px 20.0
+      ]
       [ HalogenHTML.text input.address ]
     , HalogenHTML.div [ HalogenCSS.style $ CSS.flexGrow 1 ] []
     , HalogenHTML.span
