@@ -38,5 +38,6 @@ defaultConfig =
     [ Tuple.Tuple (Shortcut "ArrowLeft" true) "back"
     , Tuple.Tuple (Shortcut "ArrowRight" true) "forward"
     , Tuple.Tuple (Shortcut "i" true) "dev-tools"
+    , Tuple.Tuple (Shortcut ":" false) "ex"
     ]
   }

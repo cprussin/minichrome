@@ -4,6 +4,8 @@ module Minichrome.CLI.Server
 
 import Prelude
 
+import Control.Monad.Trans.Class as Trans
+import Control.Monad.Maybe.Trans as MaybeT
 import Data.Maybe as Maybe
 import Data.Options ((:=))
 import Effect as Effect
@@ -13,6 +15,7 @@ import Global.Unsafe as Unsafe
 import HTTPure as HTTPure
 import Node.Electron.App as App
 import Node.Electron.BrowserWindow as BrowserWindow
+import Node.Electron.WebContents as WebContents
 import Node.Globals as Globals
 
 import Minichrome.Config as Config
@@ -37,6 +40,7 @@ openWindow :: Config.Config -> String -> Effect.Effect Unit
 openWindow config url = do
   window <- BrowserWindow.createBrowserWindow $ BrowserWindow.showOpt := false
   BrowserWindow.setMenu window Maybe.Nothing
+  --WebContents.openDevTools window.webContents
   BrowserWindow.loadURL window (pageDataURL url) $
     BrowserWindow.baseURLForDataURL := ("file://" <> Globals.__dirname <> "/")
   BrowserWindow.onceReadyToShow window $ BrowserWindow.show window
@@ -47,7 +51,19 @@ browse config url = do
   EffectClass.liftEffect do
     Console.log $ "Opening new window to " <> url
     openWindow config url
-  HTTPure.ok $ "Opening new window to " <> url
+  HTTPure.ok $ "Created new window to " <> url
+
+exec :: Config.Config -> String -> HTTPure.ResponseM
+exec config cmd = exec' >>= Maybe.maybe noCurrentWindow success
+  where
+    exec' = EffectClass.liftEffect $ MaybeT.runMaybeT do
+      Trans.lift $ Console.log $ "Running command in current window: " <> cmd
+      window <- BrowserWindow.focusedWindow
+      Trans.lift $ WebContents.send window.webContents "exec" [ cmd ]
+    noCurrentWindow = do
+      EffectClass.liftEffect $ Console.log "No window available!"
+      HTTPure.serviceUnavailable
+    success = const $ HTTPure.ok $ "Ran command in current window: " <> cmd
 
 -- | Handle bad HTTP requests.
 badRequest :: HTTPure.Request -> HTTPure.ResponseM
@@ -60,6 +76,7 @@ router :: Config.Config -> HTTPure.Request -> HTTPure.ResponseM
 router config request@{ method, path, body } =
   case method, path of
     HTTPure.Post, [ "browse" ] -> browse config body
+    HTTPure.Post, [ "exec" ] -> exec config body
     _, _ -> badRequest request
 
 -- | Start the Electron app and HTTP server.

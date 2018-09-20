@@ -10,6 +10,8 @@ module Minichrome.UI.CSS
   , defaultCursor
   , TextOverflow(..)
   , textOverflow
+  , borderWidth
+  , outlineWidth
   ) where
 
 import Prelude
@@ -76,3 +78,9 @@ ellipsis = Ellipsis
 
 custom :: String -> TextOverflow
 custom = Custom
+
+borderWidth :: forall a. CSS.Size a -> CSS.CSS
+borderWidth = CSS.key $ CSS.fromString "border-width"
+
+outlineWidth :: forall a. CSS.Size a -> CSS.CSS
+outlineWidth = CSS.key $ CSS.fromString "outline-width"

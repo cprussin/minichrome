@@ -5,11 +5,13 @@ module Minichrome.CLI.Client
 
 import Prelude
 
+import Data.Array as Array
 import Data.Array ((!!))
 import Data.Either as Either
 import Data.Maybe as Maybe
 import Data.Options as Options
 import Data.Options ((:=))
+import Data.String as String
 import Effect as Effect
 import Effect.Aff as Aff
 import Effect.Class as EffectClass
@@ -23,10 +25,11 @@ import Node.Stream as Stream
 import Minichrome.Config as Config
 
 -- | Show a helpful client CLI usage message.
-showUsage :: Effect.Effect Unit
-showUsage = do
+showUsage :: Aff.Aff Unit
+showUsage = EffectClass.liftEffect do
   Console.log $ "Usage:"
   Console.log $ "  minichrome browse <url>"
+  Console.log $ "  minichrome exec <command>"
 
 -- | Given a `Readable` stream, return an `Aff` containing the string contents
 -- | once it's all read.
@@ -68,10 +71,20 @@ request path config body = affRequest options body >>= responseString >>= affLog
 browse :: Config.Config -> String -> Aff.Aff Unit
 browse = request "/browse"
 
+-- | Send a request to the server to run some command in the current window.
+exec :: Config.Config -> String -> Aff.Aff Unit
+exec config cmd =
+  if cmd == ""
+     then showUsage
+     else request "/exec" config cmd
+
 -- | Run the client-side CLI on the given array of arguments.
 run :: Config.Config -> Array String -> Effect.Effect Unit
 run config args = void $ Aff.runAff (\_ -> pure unit) do
   case args !! 0 of
-    (Maybe.Just "browse") -> browse config $ Maybe.fromMaybe "" $ args !! 1
-    _ -> EffectClass.liftEffect showUsage
+    (Maybe.Just "browse") -> run' browse $ args !! 1
+    (Maybe.Just "exec") -> run' exec $ String.joinWith " " <$> Array.tail args
+    _ -> showUsage
   EffectClass.liftEffect $ Process.exit 0
+  where
+    run' cmd = Maybe.maybe showUsage (cmd config)

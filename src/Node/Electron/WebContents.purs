@@ -10,10 +10,12 @@ module Node.Electron.WebContents
   , openDevTools
   , setDevToolsWebContents
   , focusedWebContents
+  , send
   ) where
 
 import Prelude
 
+import Control.Monad.Maybe.Trans as MaybeT
 import Data.Maybe as Maybe
 import Effect as Effect
 import Node.Electron.Event as Event
@@ -74,5 +76,13 @@ foreign import focusedWebContentsImpl ::
   Effect.Effect (Maybe.Maybe WebContents)
 
 -- | Return the currently focused `WebContents`.
-focusedWebContents :: Effect.Effect (Maybe.Maybe WebContents)
-focusedWebContents = focusedWebContentsImpl Maybe.Just Maybe.Nothing
+focusedWebContents :: MaybeT.MaybeT Effect.Effect WebContents
+focusedWebContents =
+  MaybeT.MaybeT $ focusedWebContentsImpl Maybe.Just Maybe.Nothing
+
+-- | Send an IPC message.
+foreign import send ::
+  WebContents ->
+  String ->
+  Array String ->
+  Effect.Effect Unit

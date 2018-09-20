@@ -16,7 +16,6 @@ import Effect.Aff as Aff
 import Effect.Class as EffectClass
 import Halogen as Halogen
 import Halogen.HTML as HalogenHTML
-import Halogen.HTML.Core as HalogenHTMLCore
 import Halogen.HTML.Events as HalogenEvents
 import Halogen.HTML.Properties as HalogenProperties
 import Halogen.HTML.CSS as HalogenCSS
@@ -88,7 +87,6 @@ render input =
   HalogenHTML.element (HalogenHTML.ElemName "webview")
     [ HalogenProperties.src input.address
     , HalogenProperties.ref $ Halogen.RefLabel "webview"
-    , HalogenProperties.attr (HalogenHTMLCore.AttrName "allowpopups") ""
     , onPageTitleUpdated $ HalogenEvents.input UpdateTitle
     , onDidNavigate $ HalogenEvents.input UpdateURL
     , onDidNavigateInPage $ HalogenEvents.input UpdateURL

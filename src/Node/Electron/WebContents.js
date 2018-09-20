@@ -66,3 +66,13 @@ exports.focusedWebContentsImpl = function (Just) {
     };
   };
 };
+
+exports.send = function (webContents) {
+  return function (cmd) {
+    return function (args) {
+      return function () {
+        webContents.send(cmd, args);
+      };
+    };
+  };
+};

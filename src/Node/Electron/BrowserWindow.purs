@@ -19,6 +19,7 @@ module Node.Electron.BrowserWindow
 
 import Prelude
 
+import Control.Monad.Maybe.Trans as MaybeT
 import Data.Maybe as Maybe
 import Data.Options as Options
 import Effect as Effect
@@ -118,5 +119,5 @@ foreign import focusedWindowImpl ::
   Effect.Effect (Maybe.Maybe BrowserWindow)
 
 -- | Return the currently focused window.
-focusedWindow :: Effect.Effect (Maybe.Maybe BrowserWindow)
-focusedWindow = focusedWindowImpl Maybe.Just Maybe.Nothing
+focusedWindow :: MaybeT.MaybeT Effect.Effect BrowserWindow
+focusedWindow = MaybeT.MaybeT $ focusedWindowImpl Maybe.Just Maybe.Nothing

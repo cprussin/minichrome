@@ -12,6 +12,7 @@ type State =
   , address :: String
   , position :: Int
   , message :: String
+  , ex :: Boolean
   )
 
 foreign import initialURL :: String
@@ -24,4 +25,5 @@ initialState =
   , address: initialURL
   , position: 0
   , message: ""
+  , ex: false
   }
