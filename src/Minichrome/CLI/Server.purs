@@ -4,7 +4,6 @@ module Minichrome.CLI.Server
 
 import Prelude
 
-import Control.Monad.Trans.Class as Trans
 import Control.Monad.Maybe.Trans as MaybeT
 import Data.Maybe as Maybe
 import Data.Options ((:=))
@@ -53,13 +52,14 @@ browse config url = do
     openWindow config url
   HTTPure.ok $ "Created new window to " <> url
 
+-- | Handle HTTP requests to execute a command in the currently focused window.
 exec :: Config.Config -> String -> HTTPure.ResponseM
 exec config cmd = exec' >>= Maybe.maybe noCurrentWindow success
   where
     exec' = EffectClass.liftEffect $ MaybeT.runMaybeT do
-      Trans.lift $ Console.log $ "Running command in current window: " <> cmd
+      MaybeT.lift $ Console.log $ "Running command in current window: " <> cmd
       window <- BrowserWindow.focusedWindow
-      Trans.lift $ WebContents.send window.webContents "exec" [ cmd ]
+      MaybeT.lift $ WebContents.send window.webContents "exec" [ cmd ]
     noCurrentWindow = do
       EffectClass.liftEffect $ Console.log "No window available!"
       HTTPure.serviceUnavailable

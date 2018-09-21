@@ -17,8 +17,8 @@ import Web.HTML.Window as Window
 import Web.UIEvent.KeyboardEvent.EventTypes as EventTypes
 import Web.UIEvent.KeyboardEvent as KeyboardEvent
 
+import Minichrome.CLI.Client as Client
 import Minichrome.Config as Config
-import Minichrome.UI.Commands as Commands
 import Minichrome.UI.Components.Page as Page
 
 -- | Return `True` if the given keybinding matches the given event.
@@ -43,7 +43,7 @@ keybindingListener config query = EventTarget.eventListener \event ->
   where
     run event command = do
       Event.preventDefault event
-      Commands.run query command
+      Aff.launchAff_ $ Client.exec config command
 
 -- | Gevin a `Config` and a query callback, attach the keybindings in the config
 -- | to the window.

@@ -6,7 +6,7 @@ module Minichrome.UI.Components.Messageline
 import Prelude
 
 import CSS as CSS
-import Effect.Aff as Aff
+import Effect.Class as EffectClass
 import Halogen as Halogen
 import Halogen.HTML as HalogenHTML
 import Halogen.HTML.Events as HalogenEvents
@@ -21,11 +21,18 @@ type Input = Record
   , ex :: Boolean
   )
 
+type State = Input
+
 data Query a
   = HandleInput Input a
   | HandleEx Ex.Message a
 
-render :: Input -> Halogen.ParentHTML Query Ex.Query Unit Aff.Aff
+type Message = Ex.Message
+type DSL = Halogen.ParentDSL State Query Ex.Query Unit Message
+type Component = Halogen.Component HalogenHTML.HTML Query State Message
+type HTML m = Halogen.ParentHTML Query Ex.Query Unit m
+
+render :: forall m. EffectClass.MonadEffect m => Input -> HTML m
 render input =
   HalogenHTML.div
     [ HalogenCSS.style do
@@ -41,7 +48,7 @@ render input =
         else HalogenHTML.text input.message
     ]
 
-eval :: Query ~> Halogen.ParentDSL Input Query Ex.Query Unit Ex.Message Aff.Aff
+eval :: forall m. EffectClass.MonadEffect m => Query ~> DSL m
 eval (HandleInput n next) = do
   oldN <- Halogen.get
   when (oldN /= n) $ Halogen.put n
@@ -50,7 +57,7 @@ eval (HandleEx message next) = do
   Halogen.raise message
   pure next
 
-messageline :: Halogen.Component HalogenHTML.HTML Query Input Ex.Message Aff.Aff
+messageline :: forall m. EffectClass.MonadEffect m => Component m
 messageline = Halogen.parentComponent
   { initialState: const
     { message: State.initialState.message

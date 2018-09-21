@@ -1,4 +1,4 @@
-module Web.HTML.HTMLWebviewElement
+module Node.Electron.HTMLWebviewElement
   ( HTMLWebviewElement
   , fromHTMLElement
   , fromElement

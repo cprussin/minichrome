@@ -15,13 +15,15 @@ import Halogen.HTML as HalogenHTML
 import Halogen.HTML.Events as HalogenEvents
 import Halogen.HTML.Properties as HalogenProperties
 import Halogen.HTML.CSS as HalogenCSS
-import Web.Event.Event as Event
 import Web.HTML.HTMLElement as HTMLElement
 import Web.HTML.HTMLInputElement as HTMLInputElement
 import Web.UIEvent.FocusEvent as FocusEvent
 import Web.UIEvent.KeyboardEvent as KeyboardEvent
 
 import Minichrome.UI.CSS as MinichromeCSS
+
+type Input = Unit
+type State = Input
 
 data Query a
   = Initialize a
@@ -32,10 +34,19 @@ data Message
   = UnEx
   | RunEx String
 
+type DSL = Halogen.ComponentDSL State Query Message
+type Component = Halogen.Component HalogenHTML.HTML Query Input Message
+
+prefix :: String
+prefix = ":"
+
+exRef :: Halogen.RefLabel
+exRef = Halogen.RefLabel "ex"
+
 render :: Halogen.ComponentHTML Query
 render = HalogenHTML.input
-  [ HalogenProperties.value ":"
-  , HalogenProperties.ref $ Halogen.RefLabel "ex"
+  [ HalogenProperties.value prefix
+  , HalogenProperties.ref exRef
   , HalogenProperties.autofocus true
   , HalogenEvents.onBlur $ HalogenEvents.input Blur
   , HalogenEvents.onKeyDown $ HalogenEvents.input KeyDown
@@ -49,26 +60,26 @@ render = HalogenHTML.input
     MinichromeCSS.outlineWidth $ CSS.px 0.0
   ]
 
+withInput :: forall m t. EffectClass.MonadEffect m => Monoid t =>
+             (HTMLInputElement.HTMLInputElement -> DSL m t) ->
+             DSL m t
+withInput cb = do
+  elem <- Halogen.getHTMLElementRef exRef
+  Maybe.maybe (Halogen.liftEffect mempty) cb $
+    elem >>= HTMLInputElement.fromHTMLElement
+
 withValue :: forall m. EffectClass.MonadEffect m =>
-             KeyboardEvent.KeyboardEvent ->
-             (String -> m Unit) ->
-             m Unit
-withValue event cb =
-  Maybe.maybe (pure unit) (_ >>= cb) $ readValue <$> getInputElement
-  where
-    readValue = HTMLInputElement.value >>> Halogen.liftEffect
-    event' = KeyboardEvent.toEvent event
-    getInputElement = Event.target event' >>= HTMLInputElement.fromEventTarget
+             (String -> DSL m Unit) ->
+             DSL m Unit
+withValue = bind $ withInput $ HTMLInputElement.value >>> Halogen.liftEffect
 
 stripColon :: String -> String
-stripColon = String.replace (String.Pattern ":") (String.Replacement "")
+stripColon = String.replace (String.Pattern prefix) (String.Replacement "")
 
-eval :: forall m. EffectClass.MonadEffect m =>
-        Query ~>
-        Halogen.ComponentDSL Unit Query Message m
+eval :: forall m. EffectClass.MonadEffect m => Query ~> DSL m
 eval (Initialize next) = do
-  elem <- Halogen.getHTMLElementRef (Halogen.RefLabel "ex")
-  Maybe.maybe (pure unit) (HTMLElement.focus >>> Halogen.liftEffect) elem
+  withInput $
+    HTMLInputElement.toHTMLElement >>> HTMLElement.focus >>> Halogen.liftEffect
   pure next
 eval (Blur _ next) = do
   Halogen.raise $ UnEx
@@ -76,14 +87,12 @@ eval (Blur _ next) = do
 eval (KeyDown event next) = do
   case KeyboardEvent.key event of
     "Escape" -> Halogen.raise UnEx
-    "Enter" -> withValue event $ stripColon >>> RunEx >>> Halogen.raise
-    "Backspace" ->
-      withValue event \val -> when (val == ":") $ Halogen.raise UnEx
+    "Enter" -> withValue $ stripColon >>> RunEx >>> Halogen.raise
+    "Backspace" -> withValue \val -> when (val == prefix) $ Halogen.raise UnEx
     _ -> pure unit
   pure next
 
-ex :: forall m. EffectClass.MonadEffect m =>
-      Halogen.Component HalogenHTML.HTML Query Unit Message m
+ex :: forall m. EffectClass.MonadEffect m => Component m
 ex = Halogen.lifecycleComponent
   { initialState: const unit
   , render: const render

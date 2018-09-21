@@ -23,15 +23,13 @@ type Input = Record
   , position :: Int
   )
 
+type State = Input
+
 data Query a = HandleInput Input a
 
-initialState :: Input
-initialState =
-  { mode: State.initialState.mode
-  , title: State.initialState.title
-  , address: State.initialState.address
-  , position: State.initialState.position
-  }
+type Message = Void
+type DSL = Halogen.ComponentDSL State Query Message
+type Component = Halogen.Component HalogenHTML.HTML Query Input Message
 
 render :: Input -> Halogen.ComponentHTML Query
 render input =
@@ -89,15 +87,20 @@ render input =
       [ HalogenHTML.text $ show input.position <> "%" ]
     ]
 
-eval :: forall m. Query ~> Halogen.ComponentDSL Input Query Void m
+eval :: forall m. Query ~> DSL m
 eval (HandleInput n next) = do
   oldN <- Halogen.get
   when (oldN /= n) $ Halogen.put n
   pure next
 
-modeline :: forall m. Halogen.Component HalogenHTML.HTML Query Input Void m
+modeline :: forall m. Component m
 modeline = Halogen.component
-  { initialState: const initialState
+  { initialState: const
+    { mode: State.initialState.mode
+    , title: State.initialState.title
+    , address: State.initialState.address
+    , position: State.initialState.position
+    }
   , render
   , eval
   , receiver: HalogenEvents.input HandleInput

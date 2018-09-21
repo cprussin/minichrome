@@ -15,6 +15,9 @@ type State =
   , ex :: Boolean
   )
 
+-- | The initial URL to load upon booting this UI window.  This needs to be
+-- | FFI until https://github.com/purescript-web/purescript-web-html/pull/4
+-- | gets released.
 foreign import initialURL :: String
 
 -- | This is the state to use when creating the app.

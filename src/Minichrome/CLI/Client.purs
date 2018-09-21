@@ -1,5 +1,6 @@
 module Minichrome.CLI.Client
   ( browse
+  , exec
   , run
   ) where
 
@@ -55,7 +56,7 @@ affRequest options body = Aff.makeAff $ \done -> do
 
 -- | Make a request to the Minichrome server and print the server response.
 request :: String -> Config.Config -> String -> Aff.Aff Unit
-request path config body = affRequest options body >>= responseString >>= affLog
+request path config = affRequest options >=> responseString >=> affLog
   where
     affLog = Console.log >>> EffectClass.liftEffect
     responseString = HTTPClient.responseAsStream >>> streamToString
@@ -80,7 +81,7 @@ exec config cmd =
 
 -- | Run the client-side CLI on the given array of arguments.
 run :: Config.Config -> Array String -> Effect.Effect Unit
-run config args = void $ Aff.runAff (\_ -> pure unit) do
+run config args = void $ Aff.runAff (const $ pure unit) do
   case args !! 0 of
     (Maybe.Just "browse") -> run' browse $ args !! 1
     (Maybe.Just "exec") -> run' exec $ String.joinWith " " <$> Array.tail args

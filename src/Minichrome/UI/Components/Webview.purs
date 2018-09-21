@@ -20,9 +20,9 @@ import Halogen.HTML.Events as HalogenEvents
 import Halogen.HTML.Properties as HalogenProperties
 import Halogen.HTML.CSS as HalogenCSS
 import Node.ChildProcess as ChildProcess
+import Node.Electron.HTMLWebviewElement as HTMLWebviewElement
 import Unsafe.Coerce as Unsafe
 import Web.Event.Event as Event
-import Web.HTML.HTMLWebviewElement as HTMLWebviewElement
 
 import Minichrome.CLI.Client as Client
 import Minichrome.Config as Config
@@ -31,6 +31,8 @@ import Minichrome.UI.State as State
 type Input = Record
   ( address :: String
   )
+
+type State = Input
 
 data Query a
   = GoForward (Unit -> a)
@@ -41,12 +43,16 @@ data Query a
   | NewWindow NewWindowEvent a
   | HandleInput Input a
 
-data Message = TitleUpdated String | URLUpdated String | ShowMessage String
+data Message
+  = TitleUpdated String
+  | URLUpdated String
+  | ShowMessage String
 
-initialState :: Input
-initialState =
-  { address: State.initialState.address
-  }
+type DSL = Halogen.ComponentDSL State Query Message
+type Component = Halogen.Component HalogenHTML.HTML Query Input Message
+
+webviewRef :: Halogen.RefLabel
+webviewRef = Halogen.RefLabel "webview"
 
 type PageTitleUpdatedEvent = Record ( title :: String )
 
@@ -86,7 +92,7 @@ render :: Input -> Halogen.ComponentHTML Query
 render input =
   HalogenHTML.element (HalogenHTML.ElemName "webview")
     [ HalogenProperties.src input.address
-    , HalogenProperties.ref $ Halogen.RefLabel "webview"
+    , HalogenProperties.ref webviewRef
     , onPageTitleUpdated $ HalogenEvents.input UpdateTitle
     , onDidNavigate $ HalogenEvents.input UpdateURL
     , onDidNavigateInPage $ HalogenEvents.input UpdateURL
@@ -95,19 +101,15 @@ render input =
     ]
     [ ]
 
-withWebviewElement ::  forall m t. EffectClass.MonadEffect m => Monoid t =>
-  (HTMLWebviewElement.HTMLWebviewElement ->
-   Halogen.ComponentDSL Input Query Message m t) ->
-  Halogen.ComponentDSL Input Query Message m t
+withWebviewElement :: forall m t. EffectClass.MonadEffect m => Monoid t =>
+                      (HTMLWebviewElement.HTMLWebviewElement -> DSL m t) ->
+                      DSL m t
 withWebviewElement cb = do
-  elem <- Halogen.getHTMLElementRef (Halogen.RefLabel "webview")
+  elem <- Halogen.getHTMLElementRef webviewRef
   Maybe.maybe (Halogen.liftEffect mempty) cb $
     elem >>= HTMLWebviewElement.fromHTMLElement
 
-eval :: forall m. EffectClass.MonadEffect m =>
-        Config.Config ->
-        Query ~>
-        Halogen.ComponentDSL Input Query Message m
+eval :: forall m. EffectClass.MonadEffect m => Config.Config -> Query ~> DSL m
 eval _ (GoForward reply) = do
   withWebviewElement \wv ->
     whenM (EffectClass.liftEffect $ HTMLWebviewElement.canGoForward wv) do
@@ -146,11 +148,9 @@ eval _ (HandleInput n next) = do
   when (oldN /= n && oldURL /= n.address) $ Halogen.put n
   pure next
 
-webview :: forall m. EffectClass.MonadEffect m =>
-           Config.Config ->
-           Halogen.Component HalogenHTML.HTML Query Input Message m
+webview :: forall m. EffectClass.MonadEffect m => Config.Config -> Component m
 webview config = Halogen.component
-  { initialState: const initialState
+  { initialState: const { address: State.initialState.address }
   , render
   , eval: eval config
   , receiver: HalogenEvents.input HandleInput
