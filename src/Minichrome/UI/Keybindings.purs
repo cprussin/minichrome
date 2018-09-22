@@ -6,9 +6,10 @@ import Prelude
 
 import Data.Foldable as Foldable
 import Data.Maybe as Maybe
-import Data.Tuple as Tuple
 import Effect as Effect
 import Effect.Aff as Aff
+import Effect.Class as EffectClass
+import Halogen as Halogen
 import Web.Event.Event as Event
 import Web.Event.EventTarget as EventTarget
 import Web.HTML as HTML
@@ -20,37 +21,66 @@ import Web.UIEvent.KeyboardEvent as KeyboardEvent
 import Minichrome.CLI.Client as Client
 import Minichrome.Config as Config
 import Minichrome.UI.Components.Page as Page
+import Minichrome.UI.InputMode as InputMode
+
+-- | This isn't defined in `Web.UIEvent.KeyboardEvent.EventTypes` but should be.
+-- | TODO put a PR in to purescript-web-uievents to add this.
+keypress :: Event.EventType
+keypress = Event.EventType "keypress"
 
 -- | Return `True` if the given keybinding matches the given event.
-matchKeybinding :: KeyboardEvent.KeyboardEvent -> Config.Keybinding -> Boolean
-matchKeybinding event (Tuple.Tuple (Config.Shortcut key alt) _) =
-  key == KeyboardEvent.key event && alt == KeyboardEvent.altKey event
+match :: InputMode.Mode ->
+         KeyboardEvent.KeyboardEvent ->
+         Config.Keybinding ->
+         Boolean
+match mode event (Config.Keybinding mode' (Config.Shortcut key alt) _) =
+  mode' == mode &&
+  key == KeyboardEvent.key event &&
+  alt == KeyboardEvent.altKey event
 
 -- | Given a `Config` and an `Event`, return the command that should be ran, if
 -- | any.
-lookupKeybinding :: Config.Config -> Event.Event -> Maybe.Maybe String
-lookupKeybinding config event = do
+lookupKeybinding :: Config.Config ->
+                    InputMode.Mode ->
+                    Event.Event ->
+                    Maybe.Maybe String
+lookupKeybinding config mode event = do
   keyboardEvent <- KeyboardEvent.fromEvent event
-  Tuple.snd <$> Foldable.find (matchKeybinding keyboardEvent) config.keybindings
+  Config.getCommand <$>
+    Foldable.find (match mode keyboardEvent) config.keybindings
 
--- | Given a `Config` and a query callback, return the callback that should be
--- | attached as the event listener for handling keybindings.
-keybindingListener :: Config.Config ->
-                      (Page.Query Unit -> Aff.Aff Unit) ->
-                      Effect.Effect EventTarget.EventListener
-keybindingListener config query = EventTarget.eventListener \event ->
-  Maybe.maybe mempty (run event) $ lookupKeybinding config event
+-- | This is the keydown handler.
+onKey :: Config.Config -> (Page.Query ~> Aff.Aff) -> Event.Event -> Aff.Aff Unit
+onKey config query event = do
+  mode <- query $ Halogen.request Page.GetCurrentMode
+  Maybe.maybe (noMatch mode) run $ lookupKeybinding config mode event
   where
-    run event command = do
+    preventDefault = EffectClass.liftEffect do
       Event.preventDefault event
-      Aff.launchAff_ $ Client.exec config command
+      Event.stopPropagation event
+    noMatch mode =
+      when (mode == InputMode.Normal) preventDefault
+    run command = do
+      preventDefault
+      Client.exec config command
+
+-- | This is the keypress handler.  It's only purpose is to suppress input in
+-- | non-insert modes.
+onKeyPress :: (Page.Query ~> Aff.Aff) -> Event.Event -> Aff.Aff Unit
+onKeyPress query event = do
+  mode <- query $ Halogen.request Page.GetCurrentMode
+  when (mode /= InputMode.Insert) $ EffectClass.liftEffect do
+    Event.preventDefault event
+    Event.stopPropagation event
 
 -- | Gevin a `Config` and a query callback, attach the keybindings in the config
 -- | to the window.
-attach :: Config.Config ->
-          (Page.Query Unit -> Aff.Aff Unit) ->
-          Effect.Effect Unit
+attach :: Config.Config -> (Page.Query ~> Aff.Aff) -> Effect.Effect Unit
 attach config query = do
   document <- HTML.window >>= Window.document <#> HTMLDocument.toEventTarget
-  listener <- keybindingListener config query
+  listener <- toEventListener $ onKey config query
+  keypressListener <- toEventListener $ onKeyPress query
   EventTarget.addEventListener EventTypes.keydown listener false document
+  EventTarget.addEventListener keypress keypressListener false document
+  where
+    toEventListener cb = EventTarget.eventListener $ cb >>> Aff.launchAff_

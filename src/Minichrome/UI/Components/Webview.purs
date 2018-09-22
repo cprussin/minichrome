@@ -11,6 +11,7 @@ module Minichrome.UI.Components.Webview
 import Prelude
 
 import CSS as CSS
+import Data.Foldable as Foldable
 import Data.Maybe as Maybe
 import Effect.Aff as Aff
 import Effect.Class as EffectClass
@@ -22,11 +23,15 @@ import Halogen.HTML.CSS as HalogenCSS
 import Node.ChildProcess as ChildProcess
 import Node.Electron.HTMLWebviewElement as HTMLWebviewElement
 import Unsafe.Coerce as Unsafe
+import Web.DOM.Element as Element
 import Web.Event.Event as Event
+import Web.UIEvent.FocusEvent as FocusEvent
 
 import Minichrome.CLI.Client as Client
 import Minichrome.Config as Config
 import Minichrome.UI.State as State
+
+import Effect.Console as Console
 
 type Input = Record
   ( address :: String
@@ -35,18 +40,20 @@ type Input = Record
 type State = Input
 
 data Query a
-  = GoForward (Unit -> a)
-  | GoBack (Unit -> a)
-  | OpenDevTools (Unit -> a)
+  = GoForward a
+  | GoBack a
+  | OpenDevTools a
   | UpdateTitle PageTitleUpdatedEvent a
   | UpdateURL DidNavigateEvent a
   | NewWindow NewWindowEvent a
   | HandleInput Input a
+  | Focus FocusEvent.FocusEvent a
 
 data Message
   = TitleUpdated String
   | URLUpdated String
   | ShowMessage String
+  | Insert
 
 type DSL = Halogen.ComponentDSL State Query Message
 type Component = Halogen.Component HalogenHTML.HTML Query Input Message
@@ -93,6 +100,7 @@ render input =
   HalogenHTML.element (HalogenHTML.ElemName "webview")
     [ HalogenProperties.src input.address
     , HalogenProperties.ref webviewRef
+    , HalogenEvents.onFocus $ HalogenEvents.input Focus
     , onPageTitleUpdated $ HalogenEvents.input UpdateTitle
     , onDidNavigate $ HalogenEvents.input UpdateURL
     , onDidNavigateInPage $ HalogenEvents.input UpdateURL
@@ -110,29 +118,32 @@ withWebviewElement cb = do
     elem >>= HTMLWebviewElement.fromHTMLElement
 
 eval :: forall m. EffectClass.MonadEffect m => Config.Config -> Query ~> DSL m
-eval _ (GoForward reply) = do
+eval _ (GoForward next) = do
   withWebviewElement \wv ->
     whenM (EffectClass.liftEffect $ HTMLWebviewElement.canGoForward wv) do
       Halogen.raise $ ShowMessage "Going forward..."
       EffectClass.liftEffect $ HTMLWebviewElement.goForward wv
-  pure $ reply unit
-eval _ (GoBack reply) = do
+  pure next
+eval _ (GoBack next) = do
   withWebviewElement \wv ->
     whenM (EffectClass.liftEffect $ HTMLWebviewElement.canGoBack wv) do
       Halogen.raise $ ShowMessage "Going back..."
       EffectClass.liftEffect $ HTMLWebviewElement.goBack wv
-  pure $ reply unit
-eval _ (OpenDevTools reply) = do
+  pure next
+eval _ (OpenDevTools next) = do
   withWebviewElement \wv -> do
     unlessM (EffectClass.liftEffect $ HTMLWebviewElement.isDevToolsOpened wv) do
       Halogen.raise $ ShowMessage "Opening dev tools..."
       EffectClass.liftEffect $ HTMLWebviewElement.openDevTools wv
-  pure $ reply unit
+  pure next
 eval _ (UpdateTitle event next) = do
   Halogen.raise $ TitleUpdated event.title
   pure next
 eval _ (UpdateURL event next) = do
   Halogen.raise $ URLUpdated event.url
+  pure next
+eval _ (Focus event next) = do
+  Halogen.raise Insert
   pure next
 eval config (NewWindow event next) = do
   Halogen.raise $ ShowMessage $ "Opening " <> event.url <> " in a new window..."

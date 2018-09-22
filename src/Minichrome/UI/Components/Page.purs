@@ -22,8 +22,13 @@ import Halogen.HTML as HalogenHTML
 import Halogen.HTML.CSS as HalogenCSS
 import Halogen.HTML.Events as HalogenEvents
 import Halogen.Query.HalogenM as HalogenM
+import Web.HTML as HTML
+import Web.HTML.HTMLDocument as HTMLDocument
+import Web.HTML.HTMLElement as HTMLElement
+import Web.HTML.Window as Window
 
 import Minichrome.Config as Config
+import Minichrome.UI.InputMode as InputMode
 import Minichrome.UI.State as State
 import Minichrome.UI.Components.Ex as Ex
 import Minichrome.UI.Components.Messageline as Messageline
@@ -49,6 +54,9 @@ data Query a
   | GoForward a
   | OpenDevTools a
   | Ex a
+  | Insert a
+  | Normal a
+  | GetCurrentMode (InputMode.Mode -> a)
 
 data Message = RunEx String
 
@@ -94,10 +102,10 @@ render :: forall m t. EffectClass.MonadEffect m =>
 render config state =
   HalogenHTML.div
     [ HalogenCSS.style do
-      CSS.height $ CSS.pct 100.0
-      CSS.width $ CSS.pct 100.0
-      CSS.display $ CSS.flex
-      CSS.flexFlow CSS.column CSS.nowrap
+        CSS.height $ CSS.pct 100.0
+        CSS.width $ CSS.pct 100.0
+        CSS.display $ CSS.flex
+        CSS.flexFlow CSS.column CSS.nowrap
     ]
     [ webviewSlot config state
     , modelineSlot state
@@ -134,6 +142,9 @@ eval (HandleWebview (Webview.URLUpdated url) next) = do
 eval (HandleWebview (Webview.ShowMessage message) next) = do
   showMessage message
   pure next
+eval (HandleWebview Webview.Insert next) = do
+  Halogen.modify_ _{ mode = InputMode.Insert }
+  pure next
 eval (HandleMessageline Ex.UnEx next) = do
   Halogen.modify_ _{ ex = false }
   pure next
@@ -142,22 +153,31 @@ eval (HandleMessageline (Ex.RunEx cmd) next) = do
   Halogen.raise $ RunEx cmd
   pure next
 eval (GoBack next) = do
-  _ <- Halogen.query' ChildPath.cp1 unit $ Halogen.request Webview.GoBack
+  _ <- Halogen.query' ChildPath.cp1 unit $ Halogen.action Webview.GoBack
   pure next
 eval (GoForward next) = do
-  _ <- Halogen.query' ChildPath.cp1 unit $ Halogen.request Webview.GoForward
+  _ <- Halogen.query' ChildPath.cp1 unit $ Halogen.action Webview.GoForward
   pure next
 eval (OpenDevTools next) = do
-  _ <- Halogen.query' ChildPath.cp1 unit $ Halogen.request Webview.OpenDevTools
+  _ <- Halogen.query' ChildPath.cp1 unit $ Halogen.action Webview.OpenDevTools
   pure next
 eval (Ex next) = do
   cancelMessageCanceler
   clearMessage
   Halogen.modify_ _{ ex = true }
   pure next
+eval (Insert next) = do
+  Halogen.modify_ _{ mode = InputMode.Insert }
+  pure next
+eval (Normal next) = do
+  let active = HTML.window >>= Window.document >>= HTMLDocument.activeElement
+  Halogen.liftEffect $ active >>= Maybe.maybe (pure unit) HTMLElement.blur
+  Halogen.modify_ _{ mode = InputMode.Normal }
+  pure next
 eval (ShowMessage message next) = do
   showMessage message
   pure next
+eval (GetCurrentMode reply) = Halogen.gets _.mode >>= reply >>> pure
 
 page :: forall m. AffClass.MonadAff m => Config.Config -> Component m
 page config = Halogen.parentComponent

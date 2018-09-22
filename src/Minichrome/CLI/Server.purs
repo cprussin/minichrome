@@ -39,7 +39,7 @@ openWindow :: Config.Config -> String -> Effect.Effect Unit
 openWindow config url = do
   window <- BrowserWindow.createBrowserWindow $ BrowserWindow.showOpt := false
   BrowserWindow.setMenu window Maybe.Nothing
-  --WebContents.openDevTools window.webContents
+  when config.developerMode $ WebContents.openDevTools window.webContents
   BrowserWindow.loadURL window (pageDataURL url) $
     BrowserWindow.baseURLForDataURL := ("file://" <> Globals.__dirname <> "/")
   BrowserWindow.onceReadyToShow window $ BrowserWindow.show window

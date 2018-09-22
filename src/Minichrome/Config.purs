@@ -1,19 +1,24 @@
 module Minichrome.Config
   ( Config
-  , Keybinding
+  , Keybinding(..)
   , Shortcut(..)
   , defaultConfig
+  , getCommand
   ) where
 
 import Data.Maybe as Maybe
-import Data.Tuple as Tuple
+
+import Minichrome.UI.InputMode as InputMode
 
 -- | This is the type of keyboard shortcuts.
 data Shortcut = Shortcut String Boolean
 
 -- | This is the type of keybinding definitions--a tuple that maps a `Shortcut`
 -- | to an `Action`.
-type Keybinding = Tuple.Tuple Shortcut String
+data Keybinding = Keybinding InputMode.Mode Shortcut String
+
+getCommand :: Keybinding -> String
+getCommand (Keybinding _ _ command) = command
 
 -- | This `Record` describes the Minichrome config.  Fields are:
 -- |
@@ -24,7 +29,8 @@ type Keybinding = Tuple.Tuple Shortcut String
 -- |              new Minichrome windows.
 -- | - `keybindings`: An array of `Keybinding` definitions.
 type Config = Record
-  ( port :: Int
+  ( developerMode :: Boolean
+  , port :: Int
   , browser :: Maybe.Maybe String
   , keybindings :: Array Keybinding
   )
@@ -32,12 +38,15 @@ type Config = Record
 -- | The default configuration.
 defaultConfig :: Config
 defaultConfig =
-  { port: 42042
+  { developerMode: false
+  , port: 42042
   , browser: Maybe.Nothing
   , keybindings:
-    [ Tuple.Tuple (Shortcut "ArrowLeft" true) "back"
-    , Tuple.Tuple (Shortcut "ArrowRight" true) "forward"
-    , Tuple.Tuple (Shortcut "i" true) "dev-tools"
-    , Tuple.Tuple (Shortcut ":" false) "ex"
+    [ Keybinding InputMode.Normal (Shortcut "ArrowLeft" true) "back"
+    , Keybinding InputMode.Normal (Shortcut "ArrowRight" true) "forward"
+    , Keybinding InputMode.Normal (Shortcut "i" true) "dev-tools"
+    , Keybinding InputMode.Normal (Shortcut ":" false) "ex"
+    , Keybinding InputMode.Normal (Shortcut "i" false) "insert"
+    , Keybinding InputMode.Insert (Shortcut "Escape" false) "normal"
     ]
   }

@@ -51,13 +51,13 @@ render = HalogenHTML.input
   , HalogenEvents.onBlur $ HalogenEvents.input Blur
   , HalogenEvents.onKeyDown $ HalogenEvents.input KeyDown
   , HalogenCSS.style do
-    CSS.background $ CSS.rgba 0 0 0 0.0
-    CSS.width $ CSS.pct 100.0
-    CSS.height $ CSS.pct 100.0
-    CSS.padding (CSS.px 0.0) (CSS.px 0.0) (CSS.px 0.0) (CSS.px 0.0)
-    CSS.fontFamily [ ] MinichromeCSS.monospace
-    MinichromeCSS.borderWidth $ CSS.px 0.0
-    MinichromeCSS.outlineWidth $ CSS.px 0.0
+      CSS.background $ CSS.rgba 0 0 0 0.0
+      CSS.width $ CSS.pct 100.0
+      CSS.height $ CSS.pct 100.0
+      CSS.padding (CSS.px 0.0) (CSS.px 0.0) (CSS.px 0.0) (CSS.px 0.0)
+      CSS.fontFamily [ ] MinichromeCSS.monospace
+      MinichromeCSS.borderWidth $ CSS.px 0.0
+      MinichromeCSS.outlineWidth $ CSS.px 0.0
   ]
 
 withInput :: forall m t. EffectClass.MonadEffect m => Monoid t =>

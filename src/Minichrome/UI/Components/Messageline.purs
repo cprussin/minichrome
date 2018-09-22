@@ -36,12 +36,12 @@ render :: forall m. EffectClass.MonadEffect m => Input -> HTML m
 render input =
   HalogenHTML.div
     [ HalogenCSS.style do
-      CSS.height $ CSS.px 20.0
-      CSS.lineHeight $ CSS.px 20.0
-      CSS.paddingLeft $ CSS.px 10.0
-      CSS.paddingRight $ CSS.px 10.0
-      CSS.fontFamily [ ] MinichromeCSS.monospace
-      CSS.background CSS.lightgrey
+        CSS.height $ CSS.px 20.0
+        CSS.lineHeight $ CSS.px 20.0
+        CSS.paddingLeft $ CSS.px 10.0
+        CSS.paddingRight $ CSS.px 10.0
+        CSS.fontFamily [ ] MinichromeCSS.monospace
+        CSS.background CSS.lightgrey
     ]
     [ if input.ex
         then HalogenHTML.slot unit Ex.ex unit $ HalogenEvents.input HandleEx

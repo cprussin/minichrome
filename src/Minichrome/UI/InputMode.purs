@@ -4,9 +4,11 @@ module Minichrome.UI.InputMode
 
 import Prelude
 
--- | The `Mode` type enumerates all possible input modes.  Currently there's
--- | only normal mode, but eventually that will change.
-data Mode = Normal
+-- | The `Mode` type enumerates all possible input modes.
+data Mode = Normal | Insert
+
 derive instance eqMode :: Eq Mode
+
 instance showMode :: Show Mode where
   show Normal = "NORMAL"
+  show Insert = "INSERT"
