@@ -17,6 +17,7 @@ import Minichrome.Config as Config
 import Minichrome.UI.Components.Page as Page
 import Minichrome.UI.IPC as IPC
 import Minichrome.UI.Keybindings as Keybindings
+import Minichrome.UI.State as State
 
 -- | Handle any messages raised by the top-level `Page` component.
 handlePageMessage :: forall t m. EffectClass.MonadEffect m =>
@@ -30,8 +31,9 @@ handlePageMessage config (Page.RunEx command) = do
 -- | Given a `Config`, boot the UI.
 runUI :: Config.Config -> Effect.Effect Unit
 runUI config = HalogenAff.runHalogenAff do
+  initialState <- EffectClass.liftEffect State.initialState
   body <- HalogenAff.awaitBody
-  page <- VDomDriver.runUI (Page.page config) unit body
+  page <- VDomDriver.runUI (Page.page config initialState) unit body
   EffectClass.liftEffect $ Keybindings.attach config page.query
   EffectClass.liftEffect $ IPC.attach config page.query
   page.subscribe $ Coroutine.consumer $ handlePageMessage config

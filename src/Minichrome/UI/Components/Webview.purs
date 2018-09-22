@@ -11,7 +11,6 @@ module Minichrome.UI.Components.Webview
 import Prelude
 
 import CSS as CSS
-import Data.Foldable as Foldable
 import Data.Maybe as Maybe
 import Effect.Aff as Aff
 import Effect.Class as EffectClass
@@ -23,15 +22,12 @@ import Halogen.HTML.CSS as HalogenCSS
 import Node.ChildProcess as ChildProcess
 import Node.Electron.HTMLWebviewElement as HTMLWebviewElement
 import Unsafe.Coerce as Unsafe
-import Web.DOM.Element as Element
 import Web.Event.Event as Event
 import Web.UIEvent.FocusEvent as FocusEvent
 
 import Minichrome.CLI.Client as Client
 import Minichrome.Config as Config
 import Minichrome.UI.State as State
-
-import Effect.Console as Console
 
 type Input = Record
   ( address :: String
@@ -159,9 +155,12 @@ eval _ (HandleInput n next) = do
   when (oldN /= n && oldURL /= n.address) $ Halogen.put n
   pure next
 
-webview :: forall m. EffectClass.MonadEffect m => Config.Config -> Component m
-webview config = Halogen.component
-  { initialState: const { address: State.initialState.address }
+webview :: forall m. EffectClass.MonadEffect m =>
+           Config.Config ->
+           Record State.State ->
+           Component m
+webview config initialState = Halogen.component
+  { initialState: const { address: initialState.address }
   , render
   , eval: eval config
   , receiver: HalogenEvents.input HandleInput

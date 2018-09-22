@@ -66,20 +66,24 @@ type HTML m = Halogen.ParentHTML Query ChildQuery ChildSlot m
 
 webviewSlot :: forall m t. EffectClass.MonadEffect m =>
                Config.Config ->
+               Record State.State ->
                State t ->
                HTML m
-webviewSlot config state =
+webviewSlot config initialState state =
   HalogenHTML.slot' ChildPath.cp1 unit component state' handler
   where
-    component = Webview.webview config
+    component = Webview.webview config initialState
     state' = { address: state.address }
     handler = HalogenEvents.input HandleWebview
 
-modelineSlot :: forall m t. EffectClass.MonadEffect m => State t -> HTML m
-modelineSlot state =
+modelineSlot :: forall m t. EffectClass.MonadEffect m =>
+                Record State.State ->
+                State t ->
+                HTML m
+modelineSlot initialState state =
   HalogenHTML.slot' ChildPath.cp2 unit component state' absurd
   where
-    component = Modeline.modeline
+    component = Modeline.modeline initialState
     state' =
       { mode: state.mode
       , title: state.title
@@ -87,19 +91,23 @@ modelineSlot state =
       , position: state.position
       }
 
-messagelineSlot :: forall m t. EffectClass.MonadEffect m => State t -> HTML m
-messagelineSlot state =
+messagelineSlot :: forall m t. EffectClass.MonadEffect m =>
+                   Record State.State ->
+                   State t ->
+                   HTML m
+messagelineSlot initialState state =
   HalogenHTML.slot' ChildPath.cp3 unit component state' handler
   where
-    component = Messageline.messageline
+    component = Messageline.messageline initialState
     state' = { message: state.message , ex: state.ex }
     handler = HalogenEvents.input HandleMessageline
 
 render :: forall m t. EffectClass.MonadEffect m =>
           Config.Config ->
+          Record State.State ->
           State t ->
           HTML m
-render config state =
+render config initialState state =
   HalogenHTML.div
     [ HalogenCSS.style do
         CSS.height $ CSS.pct 100.0
@@ -107,9 +115,9 @@ render config state =
         CSS.display $ CSS.flex
         CSS.flexFlow CSS.column CSS.nowrap
     ]
-    [ webviewSlot config state
-    , modelineSlot state
-    , messagelineSlot state
+    [ webviewSlot config initialState state
+    , modelineSlot initialState state
+    , messagelineSlot initialState state
     ]
 
 clearMessage :: forall m t. MonadState.MonadState (State t) m => m Unit
@@ -179,18 +187,21 @@ eval (ShowMessage message next) = do
   pure next
 eval (GetCurrentMode reply) = Halogen.gets _.mode >>= reply >>> pure
 
-page :: forall m. AffClass.MonadAff m => Config.Config -> Component m
-page config = Halogen.parentComponent
+page :: forall m. AffClass.MonadAff m =>
+        Config.Config ->
+        Record State.State ->
+        Component m
+page config initialState = Halogen.parentComponent
   { initialState: const
     { messageCanceler: Maybe.Nothing
-    , ex: State.initialState.ex
-    , mode: State.initialState.mode
-    , title: State.initialState.title
-    , address: State.initialState.address
-    , position: State.initialState.position
-    , message: State.initialState.message
+    , ex: initialState.ex
+    , mode: initialState.mode
+    , title: initialState.title
+    , address: initialState.address
+    , position: initialState.position
+    , message: initialState.message
     }
-  , render: render config
+  , render: render config initialState
   , eval
   , receiver: const Maybe.Nothing
   }

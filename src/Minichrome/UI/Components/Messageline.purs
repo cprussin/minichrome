@@ -57,11 +57,13 @@ eval (HandleEx message next) = do
   Halogen.raise message
   pure next
 
-messageline :: forall m. EffectClass.MonadEffect m => Component m
-messageline = Halogen.parentComponent
+messageline :: forall m. EffectClass.MonadEffect m =>
+               Record State.State ->
+               Component m
+messageline initialState = Halogen.parentComponent
   { initialState: const
-    { message: State.initialState.message
-    , ex: State.initialState.ex
+    { message: initialState.message
+    , ex: initialState.ex
     }
   , render
   , eval

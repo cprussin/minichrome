@@ -94,13 +94,13 @@ eval (HandleInput n next) = do
   when (oldN /= n) $ Halogen.put n
   pure next
 
-modeline :: forall m. Component m
-modeline = Halogen.component
+modeline :: forall m. Record State.State -> Component m
+modeline initialState = Halogen.component
   { initialState: const
-    { mode: State.initialState.mode
-    , title: State.initialState.title
-    , address: State.initialState.address
-    , position: State.initialState.position
+    { mode: initialState.mode
+    , title: initialState.title
+    , address: initialState.address
+    , position: initialState.position
     }
   , render
   , eval
