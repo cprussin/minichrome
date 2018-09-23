@@ -57,6 +57,7 @@ data Query a
   | Insert a
   | Normal a
   | GetCurrentMode (InputMode.Mode -> a)
+  | GetEx (Boolean -> a)
 
 data Message = RunEx String
 
@@ -186,6 +187,7 @@ eval (ShowMessage message next) = do
   showMessage message
   pure next
 eval (GetCurrentMode reply) = Halogen.gets _.mode >>= reply >>> pure
+eval (GetEx reply) = Halogen.gets _.ex >>= reply >>> pure
 
 page :: forall m. AffClass.MonadAff m =>
         Config.Config ->

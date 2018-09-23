@@ -52,35 +52,21 @@ lookupKeybinding config mode event = do
 -- | This is the keydown handler.
 onKey :: Config.Config -> (Page.Query ~> Aff.Aff) -> Event.Event -> Aff.Aff Unit
 onKey config query event = do
-  mode <- query $ Halogen.request Page.GetCurrentMode
-  Maybe.maybe (noMatch mode) run $ lookupKeybinding config mode event
+  ex <- query $ Halogen.request Page.GetEx
+  when (not ex) do
+    mode <- query $ Halogen.request Page.GetCurrentMode
+    Maybe.maybe (pure unit) run $ lookupKeybinding config mode event
   where
-    preventDefault = EffectClass.liftEffect do
-      Event.preventDefault event
-      Event.stopPropagation event
-    noMatch mode =
-      when (mode == InputMode.Normal) preventDefault
     run command = do
-      preventDefault
+      EffectClass.liftEffect do
+        Event.preventDefault event
+        Event.stopPropagation event
       Client.exec config command
-
--- | This is the keypress handler.  It's only purpose is to suppress input in
--- | non-insert modes.
-onKeyPress :: (Page.Query ~> Aff.Aff) -> Event.Event -> Aff.Aff Unit
-onKeyPress query event = do
-  mode <- query $ Halogen.request Page.GetCurrentMode
-  when (mode /= InputMode.Insert) $ EffectClass.liftEffect do
-    Event.preventDefault event
-    Event.stopPropagation event
 
 -- | Gevin a `Config` and a query callback, attach the keybindings in the config
 -- | to the window.
 attach :: Config.Config -> (Page.Query ~> Aff.Aff) -> Effect.Effect Unit
 attach config query = do
   document <- HTML.window >>= Window.document <#> HTMLDocument.toEventTarget
-  listener <- toEventListener $ onKey config query
-  keypressListener <- toEventListener $ onKeyPress query
+  listener <- EventTarget.eventListener $ onKey config query >>> Aff.launchAff_
   EventTarget.addEventListener EventTypes.keydown listener false document
-  EventTarget.addEventListener keypress keypressListener false document
-  where
-    toEventListener cb = EventTarget.eventListener $ cb >>> Aff.launchAff_
