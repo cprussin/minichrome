@@ -3,6 +3,7 @@ module Minichrome.UI.Components.Webview
   , PageTitleUpdatedEvent
   , DidNavigateEvent
   , NewWindowEvent
+  , IPCMessageEvent
   , Input
   , Message(..)
   , webview
@@ -11,11 +12,13 @@ module Minichrome.UI.Components.Webview
 import Prelude
 
 import CSS as CSS
+import Data.Array ((!!))
 import Data.Maybe as Maybe
 import Effect.Aff as Aff
 import Effect.Class as EffectClass
 import Halogen as Halogen
 import Halogen.HTML as HalogenHTML
+import Halogen.HTML.Core as HalogenHTMLCore
 import Halogen.HTML.Events as HalogenEvents
 import Halogen.HTML.Properties as HalogenProperties
 import Halogen.HTML.CSS as HalogenCSS
@@ -42,6 +45,7 @@ data Query a
   | UpdateTitle PageTitleUpdatedEvent a
   | UpdateURL DidNavigateEvent a
   | NewWindow NewWindowEvent a
+  | IPCMessage IPCMessageEvent a
   | HandleInput Input a
   | Focus FocusEvent.FocusEvent a
 
@@ -50,6 +54,7 @@ data Message
   | URLUpdated String
   | ShowMessage String
   | Insert
+  | SetScrollPosition String
 
 type DSL = Halogen.ComponentDSL State Query Message
 type Component = Halogen.Component HalogenHTML.HTML Query Input Message
@@ -86,10 +91,17 @@ type NewWindowEvent = Record ( url :: String )
 
 onNewWindow :: forall r i.
                (NewWindowEvent -> Maybe.Maybe i) ->
-               HalogenProperties.IProp
-                 (onNewWindow :: NewWindowEvent | r) i
+               HalogenProperties.IProp (onNewWindow :: NewWindowEvent | r) i
 onNewWindow = Unsafe.unsafeCoerce >>>
   HalogenEvents.handler (Event.EventType "new-window")
+
+type IPCMessageEvent = Record ( channel :: String, args :: Array String )
+
+onIPCMessage :: forall r i.
+                (IPCMessageEvent -> Maybe.Maybe i) ->
+                HalogenProperties.IProp (onIPCMessage :: IPCMessageEvent | r) i
+onIPCMessage = Unsafe.unsafeCoerce >>>
+  HalogenEvents.handler (Event.EventType "ipc-message")
 
 render :: Input -> Halogen.ComponentHTML Query
 render input =
@@ -97,10 +109,12 @@ render input =
     [ HalogenProperties.src input.address
     , HalogenProperties.ref webviewRef
     , HalogenEvents.onFocus $ HalogenEvents.input Focus
+    , HalogenProperties.attr (HalogenHTMLCore.AttrName "preload") "./webview.js"
     , onPageTitleUpdated $ HalogenEvents.input UpdateTitle
     , onDidNavigate $ HalogenEvents.input UpdateURL
     , onDidNavigateInPage $ HalogenEvents.input UpdateURL
     , onNewWindow $ HalogenEvents.input NewWindow
+    , onIPCMessage $ HalogenEvents.input IPCMessage
     , HalogenCSS.style $ CSS.flexGrow 1
     ]
     [ ]
@@ -147,6 +161,12 @@ eval config (NewWindow event next) = do
     (Maybe.Just browser) -> void $
       ChildProcess.spawn browser [ event.url ] ChildProcess.defaultSpawnOptions
     Maybe.Nothing -> Aff.launchAff_ $ Client.browse config event.url
+  pure next
+eval config (IPCMessage event next) = do
+  case event.channel of
+    "setScrollPosition" ->
+      Halogen.raise $ SetScrollPosition $ Maybe.fromMaybe "" $ event.args !! 0
+    _ -> pure unit
   pure next
 eval _ (HandleInput n next) = do
   oldN <- Halogen.get

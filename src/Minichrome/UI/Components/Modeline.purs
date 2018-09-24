@@ -1,5 +1,6 @@
 module Minichrome.UI.Components.Modeline
-  ( Query
+  ( Query(..)
+  , Input
   , modeline
   ) where
 
@@ -20,16 +21,23 @@ type Input = Record
   ( mode :: InputMode.Mode
   , title :: String
   , address :: String
-  , position :: Int
+  , position :: String
   )
 
 type State = Input
 
-data Query a = HandleInput Input a
+data Query a
+  = HandleInput Input a
+  | SetScrollPosition String a
 
 type Message = Void
 type DSL = Halogen.ComponentDSL State Query Message
 type Component = Halogen.Component HalogenHTML.HTML Query Input Message
+
+formatPosition :: String -> String
+formatPosition "0" = "Top"
+formatPosition "100" = "Bot"
+formatPosition pct = pct <> "%"
 
 render :: Input -> Halogen.ComponentHTML Query
 render input =
@@ -85,10 +93,13 @@ render input =
           MinichromeCSS.cursor MinichromeCSS.defaultCursor
           MinichromeCSS.userSelect MinichromeCSS.none
       ]
-      [ HalogenHTML.text $ show input.position <> "%" ]
+      [ HalogenHTML.text $ formatPosition input.position ]
     ]
 
 eval :: forall m. Query ~> DSL m
+eval (SetScrollPosition pos next) = do
+  Halogen.modify_ _{ position = pos }
+  pure next
 eval (HandleInput n next) = do
   oldN <- Halogen.get
   when (oldN /= n) $ Halogen.put n

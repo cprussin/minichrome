@@ -1,5 +1,6 @@
 module Node.Electron.IPCRenderer
   ( on
+  , sendToHost
   ) where
 
 import Prelude
@@ -13,3 +14,6 @@ foreign import on ::
   String ->
   (Event.Event -> Array String -> Effect.Effect Unit) ->
   Effect.Effect Unit
+
+-- | Send an IPC message to the host.
+foreign import sendToHost :: String -> Array String -> Effect.Effect Unit

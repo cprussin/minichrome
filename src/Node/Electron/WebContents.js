@@ -71,7 +71,7 @@ exports.send = function (webContents) {
   return function (cmd) {
     return function (args) {
       return function () {
-        webContents.send(cmd, args);
+        webContents.send.apply(webContents, [cmd].concat(args));
       };
     };
   };

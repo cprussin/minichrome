@@ -21,7 +21,7 @@ type State =
   ( mode :: InputMode.Mode
   , title :: String
   , address :: String
-  , position :: Int
+  , position :: String
   , message :: String
   , ex :: Boolean
   )
@@ -41,7 +41,7 @@ initialState = initialURL <#>
   { mode: InputMode.Normal
   , title: "minichrome"
   , address: _
-  , position: 0
+  , position: "0"
   , message: ""
   , ex: false
   }
