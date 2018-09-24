@@ -46,7 +46,6 @@ defaultConfig =
     , Keybinding InputMode.Normal (Shortcut "ArrowRight" true) "forward"
     , Keybinding InputMode.Normal (Shortcut "i" true) "dev-tools"
     , Keybinding InputMode.Normal (Shortcut ":" false) "ex"
-    , Keybinding InputMode.Normal (Shortcut "i" false) "insert"
     , Keybinding InputMode.Insert (Shortcut "Escape" false) "normal"
     ]
   }

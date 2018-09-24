@@ -26,10 +26,10 @@ import Node.ChildProcess as ChildProcess
 import Node.Electron.HTMLWebviewElement as HTMLWebviewElement
 import Unsafe.Coerce as Unsafe
 import Web.Event.Event as Event
-import Web.UIEvent.FocusEvent as FocusEvent
 
 import Minichrome.CLI.Client as Client
 import Minichrome.Config as Config
+import Minichrome.UI.InputMode as InputMode
 import Minichrome.UI.State as State
 
 type Input = Record
@@ -47,13 +47,12 @@ data Query a
   | NewWindow NewWindowEvent a
   | IPCMessage IPCMessageEvent a
   | HandleInput Input a
-  | Focus FocusEvent.FocusEvent a
 
 data Message
   = TitleUpdated String
   | URLUpdated String
   | ShowMessage String
-  | Insert
+  | SetMode InputMode.Mode
   | SetScrollPosition String
 
 type DSL = Halogen.ComponentDSL State Query Message
@@ -108,7 +107,6 @@ render input =
   HalogenHTML.element (HalogenHTML.ElemName "webview")
     [ HalogenProperties.src input.address
     , HalogenProperties.ref webviewRef
-    , HalogenEvents.onFocus $ HalogenEvents.input Focus
     , HalogenProperties.attr (HalogenHTMLCore.AttrName "preload") "./webview.js"
     , onPageTitleUpdated $ HalogenEvents.input UpdateTitle
     , onDidNavigate $ HalogenEvents.input UpdateURL
@@ -152,9 +150,6 @@ eval _ (UpdateTitle event next) = do
 eval _ (UpdateURL event next) = do
   Halogen.raise $ URLUpdated event.url
   pure next
-eval _ (Focus event next) = do
-  Halogen.raise Insert
-  pure next
 eval config (NewWindow event next) = do
   Halogen.raise $ ShowMessage $ "Opening " <> event.url <> " in a new window..."
   EffectClass.liftEffect $ case config.browser of
@@ -166,6 +161,9 @@ eval config (IPCMessage event next) = do
   case event.channel of
     "setScrollPosition" ->
       Halogen.raise $ SetScrollPosition $ Maybe.fromMaybe "" $ event.args !! 0
+    "setMode" ->
+      Maybe.maybe (pure unit) (SetMode >>> Halogen.raise) $
+        event.args !! 0 >>= InputMode.read
     _ -> pure unit
   pure next
 eval _ (HandleInput n next) = do

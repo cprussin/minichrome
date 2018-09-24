@@ -151,8 +151,8 @@ eval (HandleWebview (Webview.URLUpdated url) next) = do
 eval (HandleWebview (Webview.ShowMessage message) next) = do
   showMessage message
   pure next
-eval (HandleWebview Webview.Insert next) = do
-  Halogen.modify_ _{ mode = InputMode.Insert }
+eval (HandleWebview (Webview.SetMode mode) next) = do
+  Halogen.modify_ _{ mode = mode }
   pure next
 eval (HandleWebview (Webview.SetScrollPosition pos) next) = do
   _ <- Halogen.query' ChildPath.cp2 unit $ Halogen.action $
