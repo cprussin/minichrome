@@ -127,20 +127,26 @@ withWebviewElement cb = do
 
 eval :: forall m. EffectClass.MonadEffect m => Config.Config -> Query ~> DSL m
 eval _ (GoForward next) = do
-  withWebviewElement \wv ->
-    whenM (EffectClass.liftEffect $ HTMLWebviewElement.canGoForward wv) do
+  withWebviewElement \wv -> do
+    canGoForward <- EffectClass.liftEffect $ HTMLWebviewElement.canGoForward wv
+    unless canGoForward $ Halogen.raise $ ShowMessage "Can't go forward"
+    when canGoForward do
       Halogen.raise $ ShowMessage "Going forward..."
       EffectClass.liftEffect $ HTMLWebviewElement.goForward wv
   pure next
 eval _ (GoBack next) = do
-  withWebviewElement \wv ->
-    whenM (EffectClass.liftEffect $ HTMLWebviewElement.canGoBack wv) do
+  withWebviewElement \wv -> do
+    canGoBack <- EffectClass.liftEffect $ HTMLWebviewElement.canGoBack wv
+    unless canGoBack $ Halogen.raise $ ShowMessage "Can't go back"
+    when canGoBack do
       Halogen.raise $ ShowMessage "Going back..."
       EffectClass.liftEffect $ HTMLWebviewElement.goBack wv
   pure next
 eval _ (OpenDevTools next) = do
   withWebviewElement \wv -> do
-    unlessM (EffectClass.liftEffect $ HTMLWebviewElement.isDevToolsOpened wv) do
+    isOpen <- EffectClass.liftEffect $ HTMLWebviewElement.isDevToolsOpened wv
+    when isOpen $ Halogen.raise $ ShowMessage "Dev tools are already open"
+    unless isOpen do
       Halogen.raise $ ShowMessage "Opening dev tools..."
       EffectClass.liftEffect $ HTMLWebviewElement.openDevTools wv
   pure next

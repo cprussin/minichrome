@@ -14,8 +14,7 @@ import Minichrome.Config as Config
 import Minichrome.UI.Commands as Commands
 import Minichrome.UI.Components.Page as Page
 
--- | Gevin a `Config` and a query callback, attach the keybindings in the config
--- | to the window.
+-- | Gevin a `Config` and a query callback, attach the IPC handlers.
 attach :: Config.Config ->
           (Page.Query Unit -> Aff.Aff Unit) ->
           Effect.Effect Unit

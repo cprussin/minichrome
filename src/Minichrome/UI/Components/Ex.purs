@@ -15,6 +15,7 @@ import Halogen.HTML as HalogenHTML
 import Halogen.HTML.Events as HalogenEvents
 import Halogen.HTML.Properties as HalogenProperties
 import Halogen.HTML.CSS as HalogenCSS
+import Web.Event.Event as Event
 import Web.HTML.HTMLElement as HTMLElement
 import Web.HTML.HTMLInputElement as HTMLInputElement
 import Web.UIEvent.FocusEvent as FocusEvent
@@ -86,8 +87,12 @@ eval (Blur _ next) = do
   pure next
 eval (KeyDown event next) = do
   case KeyboardEvent.key event of
-    "Escape" -> Halogen.raise UnEx
-    "Enter" -> withValue $ stripColon >>> RunEx >>> Halogen.raise
+    "Escape" -> do
+      Halogen.liftEffect $ Event.stopPropagation $ KeyboardEvent.toEvent event
+      Halogen.raise UnEx
+    "Enter" -> do
+      Halogen.liftEffect $ Event.stopPropagation $ KeyboardEvent.toEvent event
+      withValue $ stripColon >>> RunEx >>> Halogen.raise
     "Backspace" -> withValue \val -> when (val == prefix) $ Halogen.raise UnEx
     _ -> pure unit
   pure next

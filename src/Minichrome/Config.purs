@@ -1,7 +1,6 @@
 module Minichrome.Config
   ( Config
   , Keybinding(..)
-  , Shortcut(..)
   , defaultConfig
   , getCommand
   ) where
@@ -10,12 +9,9 @@ import Data.Maybe as Maybe
 
 import Minichrome.UI.InputMode as InputMode
 
--- | This is the type of keyboard shortcuts.
-data Shortcut = Shortcut String Boolean
-
 -- | This is the type of keybinding definitions--a tuple that maps a `Shortcut`
 -- | to an `Action`.
-data Keybinding = Keybinding InputMode.Mode Shortcut String
+data Keybinding = Keybinding (Array InputMode.Mode) String String
 
 getCommand :: Keybinding -> String
 getCommand (Keybinding _ _ command) = command
@@ -42,10 +38,9 @@ defaultConfig =
   , port: 42042
   , browser: Maybe.Nothing
   , keybindings:
-    [ Keybinding InputMode.Normal (Shortcut "ArrowLeft" true) "back"
-    , Keybinding InputMode.Normal (Shortcut "ArrowRight" true) "forward"
-    , Keybinding InputMode.Normal (Shortcut "i" true) "dev-tools"
-    , Keybinding InputMode.Normal (Shortcut ":" false) "ex"
-    , Keybinding InputMode.Insert (Shortcut "Escape" false) "normal"
+    [ Keybinding [ InputMode.Normal, InputMode.Insert ] "C-o" "back"
+    , Keybinding [ InputMode.Normal, InputMode.Insert ] "C-i" "forward"
+    , Keybinding [ InputMode.Normal ] ":" "ex"
+    , Keybinding [ InputMode.Insert ] "Escape" "normal"
     ]
   }
