@@ -47,6 +47,7 @@ data Query a
   | NewWindow NewWindowEvent a
   | IPCMessage IPCMessageEvent a
   | HandleInput Input a
+  | Navigate String a
 
 data Message
   = TitleUpdated String
@@ -163,7 +164,7 @@ eval config (NewWindow event next) = do
       ChildProcess.spawn browser [ event.url ] ChildProcess.defaultSpawnOptions
     Maybe.Nothing -> Aff.launchAff_ $ Client.browse config event.url
   pure next
-eval config (IPCMessage event next) = do
+eval _ (IPCMessage event next) = do
   case event.channel of
     "setScrollPosition" ->
       Halogen.raise $ SetScrollPosition $ Maybe.fromMaybe "" $ event.args !! 0
@@ -171,6 +172,10 @@ eval config (IPCMessage event next) = do
       Maybe.maybe (pure unit) (SetMode >>> Halogen.raise) $
         event.args !! 0 >>= InputMode.read
     _ -> pure unit
+  pure next
+eval _ (Navigate command next) = do
+  _ <- withWebviewElement \elem ->
+    EffectClass.liftEffect $ HTMLWebviewElement.send elem command []
   pure next
 eval _ (HandleInput n next) = do
   oldN <- Halogen.get

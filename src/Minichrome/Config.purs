@@ -41,6 +41,14 @@ defaultConfig =
     [ Keybinding [ InputMode.Normal, InputMode.Insert ] "C-o" "back"
     , Keybinding [ InputMode.Normal, InputMode.Insert ] "C-i" "forward"
     , Keybinding [ InputMode.Normal ] ":" "ex"
+    , Keybinding [ InputMode.Normal ] "h" "left"
+    , Keybinding [ InputMode.Normal ] "l" "right"
+    , Keybinding [ InputMode.Normal ] "j" "down"
+    , Keybinding [ InputMode.Normal ] "k" "up"
+    , Keybinding [ InputMode.Normal ] "C-u" "bigUp"
+    , Keybinding [ InputMode.Normal ] "C-d" "bigDown"
+    , Keybinding [ InputMode.Normal ] "G" "toBottom"
+    , Keybinding [ InputMode.Normal ] "g g" "toTop"
     , Keybinding [ InputMode.Insert ] "Escape" "normal"
     ]
   }

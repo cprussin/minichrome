@@ -19,6 +19,14 @@ lookup "dev-tools" = pure Page.OpenDevTools
 lookup "ex" = pure Page.Ex
 lookup "insert" = pure Page.Insert
 lookup "normal" = pure Page.Normal
+lookup "left" = pure $ Page.Navigate "left"
+lookup "right" = pure $ Page.Navigate "right"
+lookup "down" = pure $ Page.Navigate "down"
+lookup "up" = pure $ Page.Navigate "up"
+lookup "bigUp" = pure $ Page.Navigate "bigUp"
+lookup "bigDown" = pure $ Page.Navigate "bigDown"
+lookup "toBottom" = pure $ Page.Navigate "toBottom"
+lookup "toTop" = pure $ Page.Navigate "toTop"
 lookup cmd = pure $ Page.ShowMessage $ "Command not recognized: " <> cmd
 
 -- | Given a query callback and a command string, lookup and run the appropriate

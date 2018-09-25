@@ -21,6 +21,7 @@ module Node.Electron.HTMLWebviewElement
   , isDevToolsOpened
   , openDevTools
   , getURL
+  , send
   ) where
 
 import Prelude
@@ -85,3 +86,9 @@ foreign import goForward :: HTMLWebviewElement -> Effect.Effect Unit
 foreign import isDevToolsOpened :: HTMLWebviewElement -> Effect.Effect Boolean
 foreign import openDevTools :: HTMLWebviewElement -> Effect.Effect Unit
 foreign import getURL :: HTMLWebviewElement -> Effect.Effect String
+
+foreign import send ::
+  HTMLWebviewElement ->
+  String ->
+  Array String ->
+  Effect.Effect String

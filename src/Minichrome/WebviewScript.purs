@@ -38,6 +38,12 @@ foreign import addOnceEventListener
   -> EventTarget.EventTarget
   -> Effect.Effect Unit
 
+scrollStep :: Int
+scrollStep = 20
+
+bigScrollStep :: Int
+bigScrollStep = 200
+
 scroll :: Event.EventType
 scroll = Event.EventType "scroll"
 
@@ -137,6 +143,28 @@ throttledEventListener delay queueEvent handler = do
         Maybe.maybe mempty (runHandler isThrottled' queuedEvent')
       Ref.write Maybe.Nothing queuedEvent'
 
+setupNavigation :: Effect.Effect Unit
+setupNavigation = do
+  IPCRenderer.on "down" \_ _ -> HTML.window >>= Window.scrollBy 0 scrollStep
+  IPCRenderer.on "up" \_ _ -> HTML.window >>= Window.scrollBy 0 (-scrollStep)
+  IPCRenderer.on "left" \_ _ -> HTML.window >>= Window.scrollBy (-scrollStep) 0
+  IPCRenderer.on "right" \_ _ -> HTML.window >>= Window.scrollBy scrollStep 0
+  IPCRenderer.on "bigDown" \_ _ ->
+    HTML.window >>= Window.scrollBy 0 bigScrollStep
+  IPCRenderer.on "bigUp" \_ _ ->
+    HTML.window >>= Window.scrollBy 0 (-bigScrollStep)
+  IPCRenderer.on "toBottom" \_ _ -> do
+    getDocumentElement >>= Maybe.maybe mempty \documentElement -> do
+      window <- HTML.window
+      currentX <- Window.scrollX window
+      windowHeight <- Element.clientHeight documentElement
+      docHeight <- Element.scrollHeight documentElement
+      Window.scroll currentX (Int.ceil $ docHeight - windowHeight) window
+  IPCRenderer.on "toTop" \_ _ -> do
+    window <- HTML.window
+    currentX <- Window.scrollX window
+    Window.scroll currentX 0 window
+
 main :: Effect.Effect Unit
 main = do
   onScroll <- throttledEventListener scrollHandlerThrottle true scrollHandler
@@ -145,3 +173,4 @@ main = do
   onFocus <- EventTarget.eventListener focusHandler
   HTML.window >>= Window.toEventTarget >>>
     EventTarget.addEventListener focusin onFocus false
+  setupNavigation

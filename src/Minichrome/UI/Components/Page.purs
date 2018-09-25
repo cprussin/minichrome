@@ -56,6 +56,7 @@ data Query a
   | Ex a
   | Insert a
   | Normal a
+  | Navigate String a
   | GetCurrentMode (InputMode.Mode -> a)
   | GetEx (Boolean -> a)
 
@@ -157,6 +158,7 @@ eval (HandleWebview (Webview.SetMode mode) next) = do
 eval (HandleWebview (Webview.SetScrollPosition pos) next) = do
   _ <- Halogen.query' ChildPath.cp2 unit $ Halogen.action $
     Modeline.SetScrollPosition pos
+  Halogen.modify_ _{ position = pos }
   pure next
 eval (HandleMessageline Ex.UnEx next) = do
   Halogen.modify_ _{ ex = false }
@@ -173,6 +175,10 @@ eval (GoForward next) = do
   pure next
 eval (OpenDevTools next) = do
   _ <- Halogen.query' ChildPath.cp1 unit $ Halogen.action Webview.OpenDevTools
+  pure next
+eval (Navigate command next) = do
+  let action = Halogen.action $ Webview.Navigate command
+  _ <- Halogen.query' ChildPath.cp1 unit action
   pure next
 eval (Ex next) = do
   cancelMessageCanceler

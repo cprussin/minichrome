@@ -41,3 +41,13 @@ exports.getURL = function (elem) {
     return elem.getURL();
   };
 };
+
+exports.send = function (elem) {
+  return function (cmd) {
+    return function (args) {
+      return function () {
+        elem.send.apply(elem, [cmd].concat(args));
+      };
+    };
+  };
+};
