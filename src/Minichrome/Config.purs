@@ -49,9 +49,10 @@ defaultConfig =
     , Keybinding [ InputMode.Normal ] "C-d" "bigDown"
     , Keybinding [ InputMode.Normal ] "G" "toBottom"
     , Keybinding [ InputMode.Normal ] "g g" "toTop"
-    , Keybinding [ InputMode.Normal ] "C-+" "zoomIn"
-    , Keybinding [ InputMode.Normal ] "C--" "zoomOut"
-    , Keybinding [ InputMode.Normal ] "C-0" "zoomDefault"
+    , Keybinding [ InputMode.Normal, InputMode.Insert ] "C-+" "zoomIn"
+    , Keybinding [ InputMode.Normal, InputMode.Insert ] "C--" "zoomOut"
+    , Keybinding [ InputMode.Normal, InputMode.Insert ] "C-0" "zoomDefault"
+    , Keybinding [ InputMode.Normal ] "y y" "yankURL"
     , Keybinding [ InputMode.Insert ] "Escape" "normal"
     ]
   }

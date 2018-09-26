@@ -30,6 +30,7 @@ lookup "toTop" = pure $ Page.Navigate "toTop"
 lookup "zoomIn" = pure Page.ZoomIn
 lookup "zoomOut" = pure Page.ZoomOut
 lookup "zoomDefault" = pure Page.ZoomDefault
+lookup "yankURL" = pure Page.YankURL
 lookup cmd = pure $ Page.ShowMessage $ "Command not recognized: " <> cmd
 
 -- | Given a query callback and a command string, lookup and run the appropriate

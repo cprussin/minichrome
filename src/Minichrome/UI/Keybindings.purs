@@ -109,12 +109,14 @@ noMatch :: Config.Config ->
            Aff.Aff Unit
 noMatch config query mode event seqRef = do
   sequence <- EffectClass.liftEffect $ Ref.read seqRef
-  if Foldable.any (isPrefix mode sequence) config.keybindings
-    then query $ Halogen.action $ Page.ShowMessage sequence
-    else do
-      EffectClass.liftEffect $ Ref.write "" seqRef
-      when (mode /= InputMode.Insert || hasModifier event) do
-        query $ Halogen.action $ Page.ShowMessage $ sequence <> " is undefined"
+  unless (String.null sequence) do
+    if Foldable.any (isPrefix mode sequence) config.keybindings
+      then query $ Halogen.action $ Page.ShowMessage sequence
+      else do
+        EffectClass.liftEffect $ Ref.write "" seqRef
+        when (mode /= InputMode.Insert || hasModifier event) do
+          query $ Halogen.action $
+            Page.ShowMessage $ sequence <> " is undefined"
 
 -- | This is the keydown handler.
 onKey :: Config.Config ->

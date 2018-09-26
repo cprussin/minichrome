@@ -22,6 +22,7 @@ import Halogen.HTML as HalogenHTML
 import Halogen.HTML.CSS as HalogenCSS
 import Halogen.HTML.Events as HalogenEvents
 import Halogen.Query.HalogenM as HalogenM
+import Node.Electron.Clipboard as Clipboard
 import Web.HTML as HTML
 import Web.HTML.HTMLDocument as HTMLDocument
 import Web.HTML.HTMLElement as HTMLElement
@@ -62,6 +63,7 @@ data Query a
   | ZoomDefault a
   | GetCurrentMode (InputMode.Mode -> a)
   | GetEx (Boolean -> a)
+  | YankURL a
 
 data Message = RunEx String
 
@@ -225,6 +227,10 @@ eval (Normal next) = do
   pure next
 eval (ShowMessage message next) = do
   showMessage message
+  pure next
+eval (YankURL next) = do
+  Halogen.gets _.address >>= Clipboard.writeText >>> EffectClass.liftEffect
+  showMessage "Copied current URL to clipboard"
   pure next
 eval (GetCurrentMode reply) = Halogen.gets _.mode >>= reply >>> pure
 eval (GetEx reply) = Halogen.gets _.ex >>= reply >>> pure
