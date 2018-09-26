@@ -24,6 +24,7 @@ type State =
   , position :: String
   , message :: String
   , ex :: Boolean
+  , zoomFactor :: Number
   )
 
 -- | Get the initial URL by reading the 'data-url' attribute on the script tag.
@@ -44,4 +45,5 @@ initialState = initialURL <#>
   , position: "0"
   , message: ""
   , ex: false
+  , zoomFactor: 1.0
   }

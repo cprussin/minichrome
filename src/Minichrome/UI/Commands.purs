@@ -27,6 +27,9 @@ lookup "bigUp" = pure $ Page.Navigate "bigUp"
 lookup "bigDown" = pure $ Page.Navigate "bigDown"
 lookup "toBottom" = pure $ Page.Navigate "toBottom"
 lookup "toTop" = pure $ Page.Navigate "toTop"
+lookup "zoomIn" = pure Page.ZoomIn
+lookup "zoomOut" = pure Page.ZoomOut
+lookup "zoomDefault" = pure Page.ZoomDefault
 lookup cmd = pure $ Page.ShowMessage $ "Command not recognized: " <> cmd
 
 -- | Given a query callback and a command string, lookup and run the appropriate

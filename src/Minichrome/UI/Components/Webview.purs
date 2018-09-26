@@ -48,6 +48,7 @@ data Query a
   | IPCMessage IPCMessageEvent a
   | HandleInput Input a
   | Navigate String a
+  | SetZoom Number a
 
 data Message
   = TitleUpdated String
@@ -176,6 +177,10 @@ eval _ (IPCMessage event next) = do
 eval _ (Navigate command next) = do
   _ <- withWebviewElement \elem ->
     EffectClass.liftEffect $ HTMLWebviewElement.send elem command []
+  pure next
+eval _ (SetZoom zoom next) = do
+  _ <- withWebviewElement \elem ->
+    EffectClass.liftEffect $ HTMLWebviewElement.setZoomFactor elem zoom
   pure next
 eval _ (HandleInput n next) = do
   oldN <- Halogen.get

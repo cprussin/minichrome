@@ -51,3 +51,11 @@ exports.send = function (elem) {
     };
   };
 };
+
+exports.setZoomFactor = function (elem) {
+  return function (zoomFactor) {
+    return function () {
+      elem.setZoomFactor(zoomFactor);
+    };
+  };
+};

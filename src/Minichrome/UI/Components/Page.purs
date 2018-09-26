@@ -57,6 +57,9 @@ data Query a
   | Insert a
   | Normal a
   | Navigate String a
+  | ZoomIn a
+  | ZoomOut a
+  | ZoomDefault a
   | GetCurrentMode (InputMode.Mode -> a)
   | GetEx (Boolean -> a)
 
@@ -65,6 +68,9 @@ data Message = RunEx String
 type DSL m = Halogen.ParentDSL (State m) Query ChildQuery ChildSlot Message
 type Component = Halogen.Component HalogenHTML.HTML Query Input Message
 type HTML m = Halogen.ParentHTML Query ChildQuery ChildSlot m
+
+zoomStep :: Number
+zoomStep = 0.1
 
 webviewSlot :: forall m t. EffectClass.MonadEffect m =>
                Config.Config ->
@@ -132,6 +138,15 @@ cancelMessageCanceler = do
   messageCanceller <- Halogen.gets _.messageCanceler
   Maybe.maybe (pure unit) Halogen.lift $ messageCanceller <@> Exception.error ""
 
+queryWebview :: forall m t a. Webview.Query a -> DSL m t (Maybe.Maybe a)
+queryWebview = Halogen.query' ChildPath.cp1 unit
+
+queryModeline :: forall m t a. Modeline.Query a -> DSL m t (Maybe.Maybe a)
+queryModeline = Halogen.query' ChildPath.cp2 unit
+
+queryMessageline :: forall m t a. Messageline.Query a -> DSL m t (Maybe.Maybe a)
+queryMessageline = Halogen.query' ChildPath.cp3 unit
+
 showMessage :: forall m. AffClass.MonadAff m => String -> DSL m m Unit
 showMessage message = do
   cancelMessageCanceler
@@ -156,8 +171,7 @@ eval (HandleWebview (Webview.SetMode mode) next) = do
   Halogen.modify_ _{ mode = mode }
   pure next
 eval (HandleWebview (Webview.SetScrollPosition pos) next) = do
-  _ <- Halogen.query' ChildPath.cp2 unit $ Halogen.action $
-    Modeline.SetScrollPosition pos
+  _ <- queryModeline $ Halogen.action $ Modeline.SetScrollPosition pos
   Halogen.modify_ _{ position = pos }
   pure next
 eval (HandleMessageline Ex.UnEx next) = do
@@ -168,17 +182,33 @@ eval (HandleMessageline (Ex.RunEx cmd) next) = do
   Halogen.raise $ RunEx cmd
   pure next
 eval (GoBack next) = do
-  _ <- Halogen.query' ChildPath.cp1 unit $ Halogen.action Webview.GoBack
+  _ <- queryWebview $ Halogen.action Webview.GoBack
   pure next
 eval (GoForward next) = do
-  _ <- Halogen.query' ChildPath.cp1 unit $ Halogen.action Webview.GoForward
+  _ <- queryWebview $ Halogen.action Webview.GoForward
   pure next
 eval (OpenDevTools next) = do
-  _ <- Halogen.query' ChildPath.cp1 unit $ Halogen.action Webview.OpenDevTools
+  _ <- queryWebview $ Halogen.action Webview.OpenDevTools
   pure next
 eval (Navigate command next) = do
-  let action = Halogen.action $ Webview.Navigate command
-  _ <- Halogen.query' ChildPath.cp1 unit action
+  _ <- queryWebview $ Halogen.action $ Webview.Navigate command
+  pure next
+eval (ZoomIn next) = do
+  zoom <- Halogen.gets _.zoomFactor
+  let newZoom = zoom + zoomStep
+  Halogen.modify_ _{ zoomFactor = newZoom }
+  _ <- queryWebview $ Halogen.action $ Webview.SetZoom newZoom
+  pure next
+eval (ZoomOut next) = do
+  zoom <- Halogen.gets _.zoomFactor
+  let newZoom = zoom - zoomStep
+  Halogen.modify_ _{ zoomFactor = newZoom }
+  _ <- queryWebview $ Halogen.action $ Webview.SetZoom newZoom
+  pure next
+eval (ZoomDefault next) = do
+  zoom <- Halogen.gets _.zoomFactor
+  Halogen.modify_ _{ zoomFactor = 1.0 }
+  _ <- queryWebview $ Halogen.action $ Webview.SetZoom 1.0
   pure next
 eval (Ex next) = do
   cancelMessageCanceler
@@ -212,6 +242,7 @@ page config initialState = Halogen.parentComponent
     , address: initialState.address
     , position: initialState.position
     , message: initialState.message
+    , zoomFactor: initialState.zoomFactor
     }
   , render: render config initialState
   , eval

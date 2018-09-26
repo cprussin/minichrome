@@ -49,6 +49,9 @@ defaultConfig =
     , Keybinding [ InputMode.Normal ] "C-d" "bigDown"
     , Keybinding [ InputMode.Normal ] "G" "toBottom"
     , Keybinding [ InputMode.Normal ] "g g" "toTop"
+    , Keybinding [ InputMode.Normal ] "C-+" "zoomIn"
+    , Keybinding [ InputMode.Normal ] "C--" "zoomOut"
+    , Keybinding [ InputMode.Normal ] "C-0" "zoomDefault"
     , Keybinding [ InputMode.Insert ] "Escape" "normal"
     ]
   }
