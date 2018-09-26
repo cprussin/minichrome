@@ -12,6 +12,7 @@ import Data.Maybe as Maybe
 import Data.Either.Nested as NestedEither
 import Data.Functor.Coproduct.Nested as NestedCoproduct
 import Data.Time.Duration as Duration
+import Effect as Effect
 import Effect.Aff as Aff
 import Effect.Aff.Class as AffClass
 import Effect.Class as EffectClass
@@ -70,6 +71,11 @@ data Message = RunEx String
 type DSL m = Halogen.ParentDSL (State m) Query ChildQuery ChildSlot Message
 type Component = Halogen.Component HalogenHTML.HTML Query Input Message
 type HTML m = Halogen.ParentHTML Query ChildQuery ChildSlot m
+
+foreign import setTitle
+  :: HTMLDocument.HTMLDocument
+  -> String
+  -> Effect.Effect Unit
 
 zoomStep :: Number
 zoomStep = 0.1
@@ -149,6 +155,12 @@ queryModeline = Halogen.query' ChildPath.cp2 unit
 queryMessageline :: forall m t a. Messageline.Query a -> DSL m t (Maybe.Maybe a)
 queryMessageline = Halogen.query' ChildPath.cp3 unit
 
+setWindowTitle :: forall m. AffClass.MonadAff m => DSL m m Unit
+setWindowTitle = do
+  state <- Halogen.get
+  Halogen.liftEffect $ HTML.window >>= Window.document >>=
+    flip setTitle (state.title <> " - " <> state.address)
+
 showMessage :: forall m. AffClass.MonadAff m => String -> DSL m m Unit
 showMessage message = do
   cancelMessageCanceler
@@ -162,9 +174,11 @@ showMessage message = do
 eval :: forall m. AffClass.MonadAff m => Query ~> DSL m m
 eval (HandleWebview (Webview.TitleUpdated title) next) = do
   Halogen.modify_ _{ title = title }
+  setWindowTitle
   pure next
 eval (HandleWebview (Webview.URLUpdated url) next) = do
   Halogen.modify_ _{ address = url }
+  setWindowTitle
   pure next
 eval (HandleWebview (Webview.ShowMessage message) next) = do
   showMessage message
