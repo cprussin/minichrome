@@ -1,6 +1,7 @@
 module Minichrome.UI.State
   ( Query(..)
   , State
+  , MessagelineInput(..)
   , eval
   , initialState
   ) where
@@ -13,6 +14,7 @@ import Data.Array ((..))
 import Data.Either as Either
 import Data.Int as Int
 import Data.Maybe as Maybe
+import Data.String as String
 import Data.Time.Duration as Duration
 import Data.Traversable as Traversable
 import Effect as Effect
@@ -45,6 +47,10 @@ import Minichrome.IPC.UIToPage as IPCDown
 
 type Input = Unit
 
+data MessagelineInput = ExInput | SearchInput
+
+derive instance eqMessagelineInput :: Eq MessagelineInput
+
 type State m = Record
   ( mode :: InputMode.Mode
   , title :: String
@@ -53,11 +59,12 @@ type State m = Record
   , position :: Int
   , sequence :: String
   , message :: String
+  , searchTerm :: Maybe.Maybe String
   , messageCanceler :: Maybe.Maybe (Exception.Error -> m Unit)
   , webviewRef :: Halogen.RefLabel
-  , exRef :: Halogen.RefLabel
+  , messagelineInputRef :: Halogen.RefLabel
+  , messagelineInput :: Maybe.Maybe MessagelineInput
   , zoomFactor :: Number
-  , ex :: Boolean
   )
 
 data Query a
@@ -69,6 +76,9 @@ data Query a
   | ShowMessage String a
   | RunEx String a
   | LeaveEx a
+  | SetSearch String a
+  | CancelSearch a
+  | CommitSearch a
   | SetSequence String a
   | GetSequence (String -> a)
   | GetCurrentMode (InputMode.Mode -> a)
@@ -91,11 +101,12 @@ initialState = initialURL <#> \address ->
   , position: 0
   , sequence: ""
   , message: ""
+  , searchTerm: Maybe.Nothing
   , messageCanceler: Maybe.Nothing
   , webviewRef: Halogen.RefLabel "webview"
-  , exRef: Halogen.RefLabel "ex"
+  , messagelineInputRef: Halogen.RefLabel "messagelineInput"
+  , messagelineInput: Maybe.Nothing
   , zoomFactor: 1.0
-  , ex: false
   }
 
 eval :: forall m. AffClass.MonadAff m => Config.Config -> Query ~> DSL m m
@@ -110,11 +121,26 @@ eval config = case _ of
   (ShowMessage message next) -> next <$ showMessage message
 
   (RunEx cmd next) -> next <$ do
-    Halogen.modify_ _{ ex = false }
+    Halogen.modify_ _{ messagelineInput = Maybe.Nothing }
     Either.either showMessage (runCommand config) (Command.read cmd)
 
-  (LeaveEx next) -> next <$
-    (whenM (Halogen.gets _.ex) $ runCommand config Command.LeaveEx)
+  (LeaveEx next) -> next <$ do
+    input <- Halogen.gets _.messagelineInput
+    when (input == Maybe.Just ExInput) $ runCommand config Command.LeaveEx
+
+  (CancelSearch next) -> next <$ do
+    input <- Halogen.gets _.messagelineInput
+    when (input == Maybe.Just SearchInput) do
+      runCommand config Command.CloseSearch
+      runCommand config Command.CancelSearch
+
+  (CommitSearch next) -> next <$ do
+    input <- Halogen.gets _.messagelineInput
+    when (input == Maybe.Just SearchInput) $
+      runCommand config Command.CloseSearch
+
+  (SetSearch str next) -> next <$ do
+    unless (String.null str) $ runCommand config $ Command.Search str
 
   (UpdateTitle title next) -> next <$ do
     Halogen.modify_ _{ title = title }
@@ -183,18 +209,54 @@ eval config = case _ of
     Halogen.gets _.address >>= Clipboard.writeText >>> Halogen.liftEffect
     showMessage "Copied current URL to clipboard"
 
-  (RunCommand Command.Ex next) -> next <$ do
+  (RunCommand Command.Ex next) -> next <$ setMessagelineInput ExInput
+
+  (RunCommand Command.LeaveEx next) -> next <$ clearMessagelineInput
+
+  (RunCommand Command.StartSearch next) -> next <$
+    setMessagelineInput SearchInput
+
+  (RunCommand Command.CloseSearch next) -> next <$ clearMessagelineInput
+
+  (RunCommand Command.CancelSearch next) -> next <$ do
+    Halogen.modify_ _{ searchTerm = Maybe.Nothing }
+    withWebviewElement \elem -> Halogen.liftEffect $
+      HTMLWebviewElement.stopFindInPage elem HTMLWebviewElement.ClearSelection
+
+  (RunCommand (Command.Search term) next) -> next <$ do
+    Halogen.modify_ _{ searchTerm = Maybe.Just term }
+    withWebviewElement \elem -> Halogen.liftEffect $
+      HTMLWebviewElement.findInPage elem term true false
+
+  (RunCommand Command.SearchForward next) -> next <$ searchNext true
+
+  (RunCommand Command.SearchBack next) -> next <$ searchNext false
+
+clearMessagelineInput :: forall m. AffClass.MonadAff m => DSL m m Unit
+clearMessagelineInput = Halogen.modify_ _{ messagelineInput = Maybe.Nothing }
+
+setMessagelineInput
+  :: forall m
+   . AffClass.MonadAff m
+  => MessagelineInput
+  -> DSL m m Unit
+setMessagelineInput mode = do
     cancelMessageCanceler
     clearMessage
-    void $ Halogen.modify _{ ex = true }
-    elem <- Halogen.gets _.exRef >>= Halogen.getHTMLElementRef
+    void $ Halogen.modify _{ messagelineInput = Maybe.Just mode }
+    elem <- Halogen.gets _.messagelineInputRef >>= Halogen.getHTMLElementRef
     Halogen.liftEffect $
       Maybe.maybe
         mempty
         (HTMLInputElement.toHTMLElement >>> HTMLElement.focus)
         (elem >>= HTMLInputElement.fromHTMLElement)
 
-  (RunCommand Command.LeaveEx next) -> next <$ Halogen.modify _{ ex = false }
+searchNext :: forall m. AffClass.MonadAff m => Boolean -> DSL m m Unit
+searchNext forwards =
+  Halogen.gets _.searchTerm >>=
+    Maybe.maybe (showMessage "No search term") \term ->
+      withWebviewElement \elem -> Halogen.liftEffect $
+        HTMLWebviewElement.findInPage elem term forwards true
 
 repeat :: forall a t. Applicative a => Int -> a t -> a Unit
 repeat count = const >>> flip Traversable.traverse (1 .. count) >>> void
@@ -214,7 +276,7 @@ runCommand
   => Config.Config
   -> Command.Command
   -> DSL m m Unit
-runCommand config = Client.exec config >>> Halogen.liftAff
+runCommand config = Client.exec config >>> Aff.launchAff_ >>> Halogen.liftEffect
 
 foreign import setWindowTitle
   :: HTMLDocument.HTMLDocument

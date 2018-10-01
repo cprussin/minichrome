@@ -59,3 +59,23 @@ exports.setZoomFactor = function (elem) {
     };
   };
 };
+
+exports.findInPage = function (elem) {
+  return function (term) {
+    return function (forward) {
+      return function (findNext) {
+        return function () {
+          elem.findInPage(term, { forward: forward, findNext: findNext });
+        };
+      };
+    };
+  };
+};
+
+exports.stopFindInPageImpl = function (elem) {
+  return function (action) {
+    return function () {
+      elem.stopFindInPage(action);
+    };
+  };
+};

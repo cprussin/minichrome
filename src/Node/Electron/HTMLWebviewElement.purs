@@ -23,6 +23,9 @@ module Node.Electron.HTMLWebviewElement
   , getURL
   , send
   , setZoomFactor
+  , findInPage
+  , StopFindInPageAction(..)
+  , stopFindInPage
   ) where
 
 import Prelude
@@ -98,3 +101,28 @@ foreign import setZoomFactor
   :: HTMLWebviewElement
   -> Number
   -> Effect.Effect Unit
+
+foreign import findInPage
+  :: HTMLWebviewElement
+  -> String
+  -> Boolean
+  -> Boolean
+  -> Effect.Effect Unit
+
+foreign import stopFindInPageImpl
+  :: HTMLWebviewElement
+  -> String
+  -> Effect.Effect Unit
+
+data StopFindInPageAction = ClearSelection | KeepSelection | ActivateSelection
+
+instance showStopFindInPageAction :: Show StopFindInPageAction where
+  show ClearSelection = "clearSelection"
+  show KeepSelection = "keepSelection"
+  show ActivateSelection = "activateSelection"
+
+stopFindInPage
+  :: HTMLWebviewElement
+  -> StopFindInPageAction
+  -> Effect.Effect Unit
+stopFindInPage elem = show >>> stopFindInPageImpl elem

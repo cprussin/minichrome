@@ -28,8 +28,8 @@ type Props p =
   , message :: String
   , sequence :: String
   , webviewRef :: Halogen.RefLabel
-  , ex :: Boolean
-  , exRef :: Halogen.RefLabel
+  , messagelineInput :: Maybe.Maybe State.MessagelineInput
+  , messagelineInputRef :: Halogen.RefLabel
   , onPageTitleUpdated :: String -> Maybe.Maybe (State.Query Unit)
   , onDidNavigate :: String -> Maybe.Maybe (State.Query Unit)
   , onDidNavigateInPage :: String -> Maybe.Maybe (State.Query Unit)
@@ -37,6 +37,9 @@ type Props p =
   , onIPCMessage :: IPC.Message -> Maybe.Maybe (State.Query Unit)
   , onExClear :: Maybe.Maybe (State.Query Unit)
   , onExEnter :: String -> Maybe.Maybe (State.Query Unit)
+  , onSearchClear :: Maybe.Maybe (State.Query Unit)
+  , onSearchEnter :: String -> Maybe.Maybe (State.Query Unit)
+  , onSearchChange :: String -> Maybe.Maybe (State.Query Unit)
   | p
   )
 

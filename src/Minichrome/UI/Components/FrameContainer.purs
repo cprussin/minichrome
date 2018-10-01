@@ -38,4 +38,7 @@ render state =
     , onIPCMessage: HalogenEvents.input State.IPCMessage
     , onExClear: HalogenEvents.input_ State.LeaveEx unit
     , onExEnter: HalogenEvents.input State.RunEx
+    , onSearchClear: HalogenEvents.input_ State.CancelSearch unit
+    , onSearchEnter: const $ HalogenEvents.input_ State.CommitSearch unit
+    , onSearchChange: HalogenEvents.input State.SetSearch
     }

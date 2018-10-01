@@ -60,5 +60,9 @@ defaultConfig =
     , Keybinding [ Normal ] "y y" $ Yank URL
     , Keybinding [ Insert ] "Escape" $ SetMode Normal
     , Keybinding [ Normal ] ":" $ Ex
+    , Keybinding [ Normal ] "/" $ StartSearch
+    , Keybinding [ Normal ] "n" $ SearchForward
+    , Keybinding [ Normal ] "N" $ SearchBack
+    , Keybinding [ Normal ] "Escape" $ CancelSearch
     ]
   }

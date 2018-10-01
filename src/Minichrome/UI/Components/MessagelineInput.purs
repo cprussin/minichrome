@@ -25,6 +25,7 @@ type Props p =
   , ref :: Halogen.RefLabel
   , onClear :: Maybe.Maybe (State.Query Unit)
   , onEnter :: String -> Maybe.Maybe (State.Query Unit)
+  , onChange :: String -> Maybe.Maybe (State.Query Unit)
   | p
   )
 
@@ -37,6 +38,7 @@ messagelineInput props = HalogenHTML.div [ style ]
     , HalogenProperties.autofocus true
     , HalogenEvents.onBlur $ const props.onClear
     , HalogenEvents.onKeyDown $ handleKeyDown props
+    , HalogenEvents.onInput $ withValue props.onChange
     ]
   ]
 
@@ -70,20 +72,13 @@ handleKeyDown props event = UnsafeEffect.unsafePerformEffect do
   Event.stopPropagation $ KeyboardEvent.toEvent event
   pure $ case KeyboardEvent.key event of
     "Escape" -> props.onClear
-    "Enter" -> withValue event \val ->
+    "Enter" -> flip withValue (KeyboardEvent.toEvent event) \val ->
       if String.null val then props.onClear else props.onEnter val
-    "Backspace" -> withValue event \val ->
+    "Backspace" -> flip withValue (KeyboardEvent.toEvent event) \val ->
       if String.null val then props.onClear else Maybe.Nothing
     _ -> Maybe.Nothing
 
-withValue
-  :: forall a
-   . KeyboardEvent.KeyboardEvent
-  -> (String -> Maybe.Maybe a)
-  -> Maybe.Maybe a
-withValue event cb =
-  Event.target (KeyboardEvent.toEvent event) >>=
-  HTMLInputElement.fromEventTarget >>=
-  HTMLInputElement.value >>>
-  UnsafeEffect.unsafePerformEffect >>>
-  cb
+withValue :: forall a. (String -> Maybe.Maybe a) -> Event.Event -> Maybe.Maybe a
+withValue cb =
+  Event.target >=> HTMLInputElement.fromEventTarget >=>
+    HTMLInputElement.value >>> UnsafeEffect.unsafePerformEffect >>> cb
