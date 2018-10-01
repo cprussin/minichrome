@@ -51,9 +51,9 @@ backgroundColor :: Options.Option BrowserWindowOptions String
 backgroundColor = Options.opt "backgroundColor"
 
 -- | Return an `Effect` containing a new `BrowserWindow`.
-foreign import createBrowserWindowImpl ::
-  Foreign.Foreign ->
-  Effect.Effect BrowserWindow
+foreign import createBrowserWindowImpl
+  :: Foreign.Foreign
+  -> Effect.Effect BrowserWindow
 
 -- | Given a `BrowserWindowOptions`, return an `Effect` containing a new
 -- | `BrowserWindow`.
@@ -76,16 +76,17 @@ baseURLForDataURL :: Options.Option LoadURLOptions String
 baseURLForDataURL = Options.opt "baseURLForDataURL"
 
 -- | Point the frame at the given URL.
-foreign import loadURLImpl ::
-  BrowserWindow ->
-  String ->
-  Foreign.Foreign ->
-  Effect.Effect Unit
+foreign import loadURLImpl
+  :: BrowserWindow
+  -> String
+  -> Foreign.Foreign
+  -> Effect.Effect Unit
 
-loadURL :: BrowserWindow ->
-           String ->
-           Options.Options LoadURLOptions ->
-           Effect.Effect Unit
+loadURL
+  :: BrowserWindow
+  -> String
+  -> Options.Options LoadURLOptions
+  -> Effect.Effect Unit
 loadURL window url = Options.options >>> loadURLImpl window url
 
 -- | Point the frame at the given file.
@@ -98,25 +99,25 @@ setMenu window (Maybe.Just menu) = setMenuImpl window menu
 setMenu window Maybe.Nothing = clearMenu window
 
 -- | Attach an effect to the browser window's `ready-to-show` event.
-foreign import onceReadyToShow ::
-  BrowserWindow ->
-  Effect.Effect Unit ->
-  Effect.Effect Unit
+foreign import onceReadyToShow
+  :: BrowserWindow
+  -> Effect.Effect Unit
+  -> Effect.Effect Unit
 
 -- | Show a window that's been hidden.
 foreign import show :: BrowserWindow -> Effect.Effect Unit
 
 -- | Attach an effect to the window's `show` event
-foreign import onShow ::
-  BrowserWindow ->
-  Effect.Effect Unit ->
-  Effect.Effect Unit
+foreign import onShow
+  :: BrowserWindow
+  -> Effect.Effect Unit
+  -> Effect.Effect Unit
 
 -- | Return the currently focused window.
-foreign import focusedWindowImpl ::
-  (BrowserWindow -> Maybe.Maybe BrowserWindow) ->
-  (Maybe.Maybe BrowserWindow) ->
-  Effect.Effect (Maybe.Maybe BrowserWindow)
+foreign import focusedWindowImpl
+  :: (BrowserWindow -> Maybe.Maybe BrowserWindow)
+  -> (Maybe.Maybe BrowserWindow)
+  -> Effect.Effect (Maybe.Maybe BrowserWindow)
 
 -- | Return the currently focused window.
 focusedWindow :: MaybeT.MaybeT Effect.Effect BrowserWindow

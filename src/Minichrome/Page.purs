@@ -1,4 +1,4 @@
-module Minichrome.WebviewScript
+module Minichrome.Page
   ( main
   ) where
 
@@ -13,7 +13,6 @@ import Effect.Aff as Aff
 import Effect.Class as EffectClass
 import Effect.Ref as Ref
 import Math as Math
-import Node.Electron.IPCRenderer as IPCRenderer
 import Web.DOM.Document as Document
 import Web.DOM.Element as Element
 import Web.Event.Event as Event
@@ -21,8 +20,14 @@ import Web.Event.EventTarget as EventTarget
 import Web.HTML as HTML
 import Web.HTML.Event.EventTypes as EventTypes
 import Web.HTML.HTMLDocument as HTMLDocument
+import Web.HTML.HTMLElement as HTMLElement
 import Web.HTML.HTMLInputElement as HTMLInputElement
 import Web.HTML.Window as Window
+
+import Minichrome.Command.Direction as Direction
+import Minichrome.Command.InputMode as InputMode
+import Minichrome.IPC.PageToUI as IPCUp
+import Minichrome.IPC.UIToPage as IPCDown
 
 foreign import addPassiveEventListener
   :: Event.EventType
@@ -37,12 +42,6 @@ foreign import addOnceEventListener
   -> Boolean
   -> EventTarget.EventTarget
   -> Effect.Effect Unit
-
-scrollStep :: Int
-scrollStep = 20
-
-bigScrollStep :: Int
-bigScrollStep = 200
 
 scroll :: Event.EventType
 scroll = Event.EventType "scroll"
@@ -60,21 +59,27 @@ intPct :: Number -> Number -> Int
 intPct num denom =
   Maybe.fromMaybe 0 $ Int.fromNumber $ Math.floor $ 100.0 * num / denom
 
-getDocumentElement :: Effect.Effect (Maybe.Maybe Element.Element)
-getDocumentElement =
+withDocumentElement :: Effect.Effect (Maybe.Maybe Element.Element)
+withDocumentElement =
   HTML.window >>=
   Window.document >>=
   HTMLDocument.toDocument >>>
   Document.documentElement
 
+withActiveElement :: Effect.Effect (Maybe.Maybe HTMLElement.HTMLElement)
+withActiveElement =
+  HTML.window >>=
+  Window.document >>=
+  HTMLDocument.activeElement
+
 scrollHandler :: Event.Event -> Effect.Effect Unit
 scrollHandler = const $
-  getDocumentElement >>= Maybe.maybe mempty \documentElement -> do
+  withDocumentElement >>= Maybe.maybe mempty \documentElement -> do
     scrollPos <- Element.scrollTop documentElement
     windowHeight <- Element.clientHeight documentElement
     docHeight <- Element.scrollHeight documentElement
     let scrollPct = intPct scrollPos $ docHeight - windowHeight
-    IPCRenderer.sendToHost "setScrollPosition" [show scrollPct]
+    IPCUp.send $ IPCUp.SetScrollPosition scrollPct
 
 isInsertableInput :: HTMLInputElement.HTMLInputElement -> Effect.Effect Boolean
 isInsertableInput elem =
@@ -110,18 +115,19 @@ focusHandler event = Maybe.fromMaybe mempty do
   pure $ ifM (isInsertable target) (setInsertMode target) mempty
   where
     setInsertMode element = do
-      IPCRenderer.sendToHost "setMode" [ "insert" ]
+      IPCUp.send $ IPCUp.SetMode InputMode.Insert
       setNormalMode <- EventTarget.eventListener $ const $
-        IPCRenderer.sendToHost "setMode" [ "normal" ]
+        IPCUp.send $ IPCUp.SetMode InputMode.Normal
       addOnceEventListener EventTypes.blur setNormalMode false $
         Element.toEventTarget element
       HTML.window >>= Window.toEventTarget >>>
         addOnceEventListener beforeunload setNormalMode false
 
-throttledEventListener :: Number ->
-                          Boolean ->
-                          (Event.Event -> Effect.Effect Unit) ->
-                          Effect.Effect EventTarget.EventListener
+throttledEventListener
+  :: Number
+  -> Boolean
+  -> (Event.Event -> Effect.Effect Unit)
+  -> Effect.Effect EventTarget.EventListener
 throttledEventListener delay queueEvent handler = do
   isThrottled <- Ref.new false
   queuedEvent <- Ref.new Maybe.Nothing
@@ -144,26 +150,34 @@ throttledEventListener delay queueEvent handler = do
       Ref.write Maybe.Nothing queuedEvent'
 
 setupNavigation :: Effect.Effect Unit
-setupNavigation = do
-  IPCRenderer.on "down" \_ _ -> HTML.window >>= Window.scrollBy 0 scrollStep
-  IPCRenderer.on "up" \_ _ -> HTML.window >>= Window.scrollBy 0 (-scrollStep)
-  IPCRenderer.on "left" \_ _ -> HTML.window >>= Window.scrollBy (-scrollStep) 0
-  IPCRenderer.on "right" \_ _ -> HTML.window >>= Window.scrollBy scrollStep 0
-  IPCRenderer.on "bigDown" \_ _ ->
-    HTML.window >>= Window.scrollBy 0 bigScrollStep
-  IPCRenderer.on "bigUp" \_ _ ->
-    HTML.window >>= Window.scrollBy 0 (-bigScrollStep)
-  IPCRenderer.on "toBottom" \_ _ -> do
-    getDocumentElement >>= Maybe.maybe mempty \documentElement -> do
+setupNavigation = IPCDown.subscribe $ case _ of
+
+  (IPCDown.Scroll (Direction.Up step)) ->
+    HTML.window >>= Window.scrollBy 0 (-step)
+
+  (IPCDown.Scroll (Direction.Down step)) ->
+    HTML.window >>= Window.scrollBy 0 step
+
+  (IPCDown.Scroll (Direction.Left step)) ->
+    HTML.window >>= Window.scrollBy (-step) 0
+
+  (IPCDown.Scroll (Direction.Right step)) ->
+    HTML.window >>= Window.scrollBy step 0
+
+  (IPCDown.Scroll Direction.Top) -> do
+    window <- HTML.window
+    currentX <- Window.scrollX window
+    Window.scroll currentX 0 window
+
+  (IPCDown.Scroll Direction.Bottom) ->
+    withDocumentElement >>= Maybe.maybe mempty \documentElement -> do
       window <- HTML.window
       currentX <- Window.scrollX window
       windowHeight <- Element.clientHeight documentElement
       docHeight <- Element.scrollHeight documentElement
       Window.scroll currentX (Int.ceil $ docHeight - windowHeight) window
-  IPCRenderer.on "toTop" \_ _ -> do
-    window <- HTML.window
-    currentX <- Window.scrollX window
-    Window.scroll currentX 0 window
+
+  IPCDown.Blur -> withActiveElement >>= Maybe.maybe mempty HTMLElement.blur
 
 main :: Effect.Effect Unit
 main = do

@@ -92,7 +92,7 @@ foreign import send
   :: HTMLWebviewElement
   -> String
   -> Array String
-  -> Effect.Effect String
+  -> Effect.Effect Unit
 
 foreign import setZoomFactor
   :: HTMLWebviewElement

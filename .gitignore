@@ -1,6 +1,4 @@
-index.js
-ui.js
-webview.js
+*.js
 /bower_components/
 /node_modules/
 /.pulp-cache/

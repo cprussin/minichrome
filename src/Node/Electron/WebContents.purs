@@ -24,29 +24,28 @@ import Node.Electron.Event as Event
 foreign import data WebContents :: Type
 
 -- | Attach an Effect to the 'new-window' event of a `WebContents` value.
-foreign import onNewWindow ::
-  WebContents ->
-  (Event.Event -> String -> Effect.Effect Unit) ->
-  Effect.Effect Unit
+foreign import onNewWindow
+  :: WebContents
+  -> (Event.Event -> String -> Effect.Effect Unit)
+  -> Effect.Effect Unit
 
 -- | These are the properties that are sent in a `before-input-event`.
-type InputProperties =
-  Record
-    ( type :: String
-    , key :: String
-    , code :: String
-    , isAutoRepeat :: Boolean
-    , shift :: Boolean
-    , control :: Boolean
-    , alt :: Boolean
-    , meta :: Boolean
-    )
+type InputProperties = Record
+  ( type :: String
+  , key :: String
+  , code :: String
+  , isAutoRepeat :: Boolean
+  , shift :: Boolean
+  , control :: Boolean
+  , alt :: Boolean
+  , meta :: Boolean
+  )
 
 -- | Attach an Effect to the 'before-input-event' event.
-foreign import beforeInputEvent ::
-  WebContents ->
-  (Event.Event -> InputProperties -> Effect.Effect Unit) ->
-  Effect.Effect Unit
+foreign import beforeInputEvent
+  :: WebContents
+  -> (Event.Event -> InputProperties -> Effect.Effect Unit)
+  -> Effect.Effect Unit
 
 -- | True if the web contents can go back.
 foreign import canGoBack :: WebContents -> Boolean
@@ -64,16 +63,16 @@ foreign import goForward :: WebContents -> Effect.Effect Unit
 foreign import openDevTools :: WebContents -> Effect.Effect Unit
 
 -- | Set the web contents target for the dev tools for the current wbe contents.
-foreign import setDevToolsWebContents ::
-  WebContents ->
-  WebContents ->
-  Effect.Effect Unit
+foreign import setDevToolsWebContents
+  :: WebContents
+  -> WebContents
+  -> Effect.Effect Unit
 
 -- | Return the currently focused `WebContents`.
-foreign import focusedWebContentsImpl ::
-  (WebContents -> Maybe.Maybe WebContents) ->
-  (Maybe.Maybe WebContents) ->
-  Effect.Effect (Maybe.Maybe WebContents)
+foreign import focusedWebContentsImpl
+  :: (WebContents -> Maybe.Maybe WebContents)
+  -> (Maybe.Maybe WebContents)
+  -> Effect.Effect (Maybe.Maybe WebContents)
 
 -- | Return the currently focused `WebContents`.
 focusedWebContents :: MaybeT.MaybeT Effect.Effect WebContents
@@ -81,8 +80,8 @@ focusedWebContents =
   MaybeT.MaybeT $ focusedWebContentsImpl Maybe.Just Maybe.Nothing
 
 -- | Send an IPC message.
-foreign import send ::
-  WebContents ->
-  String ->
-  Array String ->
-  Effect.Effect Unit
+foreign import send
+  :: WebContents
+  -> String
+  -> Array String
+  -> Effect.Effect Unit

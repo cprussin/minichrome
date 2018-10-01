@@ -5,15 +5,21 @@ module Minichrome.Config
   , getCommand
   ) where
 
+import Prelude
+
 import Data.Maybe as Maybe
 
-import Minichrome.UI.InputMode as InputMode
+import Minichrome.Command.Command (Command(..))
+import Minichrome.Command.Direction (Direction(..))
+import Minichrome.Command.InputMode (Mode(..))
+import Minichrome.Command.YankTarget (YankTarget(..))
+import Minichrome.Command.ZoomDirection (ZoomDirection(..))
 
 -- | This is the type of keybinding definitions--a tuple that maps a `Shortcut`
 -- | to an `Action`.
-data Keybinding = Keybinding (Array InputMode.Mode) String String
+data Keybinding = Keybinding (Array Mode) String Command
 
-getCommand :: Keybinding -> String
+getCommand :: Keybinding -> Command
 getCommand (Keybinding _ _ command) = command
 
 -- | This `Record` describes the Minichrome config.  Fields are:
@@ -38,21 +44,21 @@ defaultConfig =
   , port: 42042
   , browser: Maybe.Nothing
   , keybindings:
-    [ Keybinding [ InputMode.Normal, InputMode.Insert ] "C-o" "back"
-    , Keybinding [ InputMode.Normal, InputMode.Insert ] "C-i" "forward"
-    , Keybinding [ InputMode.Normal ] ":" "ex"
-    , Keybinding [ InputMode.Normal ] "h" "left"
-    , Keybinding [ InputMode.Normal ] "l" "right"
-    , Keybinding [ InputMode.Normal ] "j" "down"
-    , Keybinding [ InputMode.Normal ] "k" "up"
-    , Keybinding [ InputMode.Normal ] "C-u" "bigUp"
-    , Keybinding [ InputMode.Normal ] "C-d" "bigDown"
-    , Keybinding [ InputMode.Normal ] "G" "toBottom"
-    , Keybinding [ InputMode.Normal ] "g g" "toTop"
-    , Keybinding [ InputMode.Normal, InputMode.Insert ] "C-+" "zoomIn"
-    , Keybinding [ InputMode.Normal, InputMode.Insert ] "C--" "zoomOut"
-    , Keybinding [ InputMode.Normal, InputMode.Insert ] "C-0" "zoomDefault"
-    , Keybinding [ InputMode.Normal ] "y y" "yankURL"
-    , Keybinding [ InputMode.Insert ] "Escape" "normal"
+    [ Keybinding [ Normal ] "h" $ Scroll $ Left 1
+    , Keybinding [ Normal ] "l" $ Scroll $ Right 1
+    , Keybinding [ Normal ] "j" $ Scroll $ Down 1
+    , Keybinding [ Normal ] "k" $ Scroll $ Up 1
+    , Keybinding [ Normal ] "C-u" $ Scroll $ Up 10
+    , Keybinding [ Normal ] "C-d" $ Scroll $ Down 10
+    , Keybinding [ Normal ] "G" $ Scroll Bottom
+    , Keybinding [ Normal ] "g g" $ Scroll Top
+    , Keybinding [ Normal, Insert ] "C-+" $ Zoom $ In 1
+    , Keybinding [ Normal, Insert ] "C--" $ Zoom $ Out 1
+    , Keybinding [ Normal, Insert ] "C-0" $ Zoom Reset
+    , Keybinding [ Normal, Insert ] "C-o" $ Navigate (-1)
+    , Keybinding [ Normal, Insert ] "C-i" $ Navigate 1
+    , Keybinding [ Normal ] "y y" $ Yank URL
+    , Keybinding [ Insert ] "Escape" $ SetMode Normal
+    , Keybinding [ Normal ] ":" $ Ex
     ]
   }

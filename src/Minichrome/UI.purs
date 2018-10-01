@@ -4,39 +4,25 @@ module Minichrome.UI
 
 import Prelude
 
-import Control.Coroutine as Coroutine
-import Data.Maybe as Maybe
 import Effect as Effect
-import Effect.Aff as Aff
-import Effect.Class as EffectClass
+import Halogen as Halogen
 import Halogen.Aff as HalogenAff
 import Halogen.VDom.Driver as VDomDriver
 
-import Minichrome.CLI.Client as Client
 import Minichrome.Config as Config
-import Minichrome.UI.Components.Page as Page
+import Minichrome.UI.Components.FrameContainer as FrameContainer
 import Minichrome.UI.IPC as IPC
 import Minichrome.UI.Keybindings as Keybindings
 import Minichrome.UI.State as State
 
--- | Handle any messages raised by the top-level `Page` component.
-handlePageMessage :: forall t m. EffectClass.MonadEffect m =>
-                     Config.Config ->
-                     Page.Message ->
-                     m (Maybe.Maybe t)
-handlePageMessage config (Page.RunEx command) = do
-  EffectClass.liftEffect $ Aff.launchAff_ $ Client.exec config command
-  pure Maybe.Nothing
-
 -- | Given a `Config`, boot the UI.
 runUI :: Config.Config -> Effect.Effect Unit
 runUI config = HalogenAff.runHalogenAff do
-  initialState <- EffectClass.liftEffect State.initialState
+  state <- Halogen.liftEffect State.initialState
   body <- HalogenAff.awaitBody
-  page <- VDomDriver.runUI (Page.page config initialState) unit body
-  EffectClass.liftEffect $ Keybindings.attach config page.query
-  EffectClass.liftEffect $ IPC.attach config page.query
-  page.subscribe $ Coroutine.consumer $ handlePageMessage config
+  ui <- VDomDriver.runUI (FrameContainer.frameContainer config state) unit body
+  Halogen.liftEffect $ Keybindings.attach config ui.query
+  Halogen.liftEffect $ IPC.attach config ui.query
 
 -- | The entry point for booting the UI.
 main :: Effect.Effect Unit

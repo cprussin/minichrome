@@ -18,6 +18,7 @@ import Node.Electron.WebContents as WebContents
 import Node.Globals as Globals
 
 import Minichrome.Config as Config
+import Minichrome.IPC.CLIToUI as IPC
 
 -- | The data URL encoding the page contents for the window.
 pageDataURL :: String -> String
@@ -59,7 +60,7 @@ exec config cmd = exec' >>= Maybe.maybe noCurrentWindow success
     exec' = EffectClass.liftEffect $ MaybeT.runMaybeT do
       MaybeT.lift $ Console.log $ "Running command in current window: " <> cmd
       window <- BrowserWindow.focusedWindow
-      MaybeT.lift $ WebContents.send window.webContents "exec" [ cmd ]
+      MaybeT.lift $ IPC.send window.webContents $ IPC.Exec cmd
     noCurrentWindow = do
       EffectClass.liftEffect $ Console.log "No window available!"
       HTTPure.serviceUnavailable

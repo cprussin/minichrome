@@ -11,7 +11,6 @@ import Data.String as String
 import Effect as Effect
 import Effect.Aff as Aff
 import Effect.Class as EffectClass
-import Effect.Ref as Ref
 import Halogen as Halogen
 import Web.Event.Event as Event
 import Web.Event.EventTarget as EventTarget
@@ -22,9 +21,10 @@ import Web.UIEvent.KeyboardEvent.EventTypes as EventTypes
 import Web.UIEvent.KeyboardEvent as KeyboardEvent
 
 import Minichrome.CLI.Client as Client
+import Minichrome.Command.Command as Command
+import Minichrome.Command.InputMode as InputMode
 import Minichrome.Config as Config
-import Minichrome.UI.Components.Page as Page
-import Minichrome.UI.InputMode as InputMode
+import Minichrome.UI.State as State
 
 -- | This isn't defined in `Web.UIEvent.KeyboardEvent.EventTypes` but should be.
 -- | TODO put a PR in to purescript-web-uievents to add this.
@@ -39,10 +39,11 @@ match currentMode sequence (Config.Keybinding validModes matchSequence _) =
 
 -- | Given a `Config` and an `Event`, return the command that should be ran, if
 -- | any.
-lookupKeybinding :: Config.Config ->
-                    InputMode.Mode ->
-                    String ->
-                    Maybe.Maybe String
+lookupKeybinding
+  :: Config.Config
+  -> InputMode.Mode
+  -> String
+  -> Maybe.Maybe Command.Command
 lookupKeybinding config mode sequence =
   Config.getCommand <$> Foldable.find (match mode sequence) config.keybindings
 
@@ -66,21 +67,27 @@ appendKey event currentSequence =
 -- | Given an `Event` and a callback, try to convert the event into a
 -- | `KeyboardEvent`.  If successful, pass the `KeyboardEvent` to the callback
 -- | and evaluate the result.  Otherwise, just evaluate a `pure unit`.
-withKeyboardEvent :: forall a. Applicative a =>
-                     Event.Event ->
-                     (KeyboardEvent.KeyboardEvent -> a Unit) ->
-                     a Unit
+withKeyboardEvent
+  :: forall a. Applicative a
+  => Event.Event
+  -> (KeyboardEvent.KeyboardEvent -> a Unit)
+  -> a Unit
 withKeyboardEvent event cb =
   Maybe.maybe (pure unit) cb $ KeyboardEvent.fromEvent event
 
 -- | Run a command, stopping propagation and default handling of the associated
 -- | event, and clearing the sequence ref.
-run :: Config.Config -> Event.Event -> Ref.Ref String -> String -> Aff.Aff Unit
-run config event seqRef command = do
+run
+  :: Config.Config
+  -> (State.Query ~> Aff.Aff)
+  -> Event.Event
+  -> Command.Command
+  -> Aff.Aff Unit
+run config query event command = do
   EffectClass.liftEffect do
     Event.preventDefault event
     Event.stopPropagation event
-    Ref.write "" seqRef
+  query $ Halogen.action $ State.SetSequence ""
   Client.exec config command
 
 -- | True if the given sequence is the prefix of the given keybinding.
@@ -101,44 +108,43 @@ hasModifier event =
 -- | If the current sequence is a possible prefix for a keybinding, then show it
 -- | in the message line.  Otherwise, clear it and show a message indicating
 -- | that there's no match.
-noMatch :: Config.Config ->
-           (Page.Query ~> Aff.Aff) ->
-           InputMode.Mode ->
-           KeyboardEvent.KeyboardEvent ->
-           Ref.Ref String ->
-           Aff.Aff Unit
-noMatch config query mode event seqRef = do
-  sequence <- EffectClass.liftEffect $ Ref.read seqRef
-  unless (String.null sequence) do
-    if Foldable.any (isPrefix mode sequence) config.keybindings
-      then query $ Halogen.action $ Page.ShowMessage sequence
-      else do
-        EffectClass.liftEffect $ Ref.write "" seqRef
-        when (mode /= InputMode.Insert || hasModifier event) do
-          query $ Halogen.action $
-            Page.ShowMessage $ sequence <> " is undefined"
+noMatch
+  :: Config.Config
+  -> (State.Query ~> Aff.Aff)
+  -> InputMode.Mode
+  -> KeyboardEvent.KeyboardEvent
+  -> Aff.Aff Unit
+noMatch config query mode event = do
+  sequence <- query $ Halogen.request State.GetSequence
+  unless (String.null sequence || isPrefix' sequence) do
+    query $ Halogen.action $ State.SetSequence ""
+    when (mode /= InputMode.Insert || hasModifier event) do
+      query $ Halogen.action $
+        State.ShowMessage $ sequence <> " is undefined"
+  where
+    isPrefix' = isPrefix mode >>> flip Foldable.any config.keybindings
 
 -- | This is the keydown handler.
-onKey :: Config.Config ->
-         (Page.Query ~> Aff.Aff) ->
-         Ref.Ref String ->
-         Event.Event ->
-         Effect.Effect Unit
-onKey config query seqRef event = Aff.launchAff_ do
-  ex <- query $ Halogen.request Page.GetEx
-  unless ex $ withKeyboardEvent event \event' -> do
-    mode <- query $ Halogen.request Page.GetCurrentMode
-    sequence <- EffectClass.liftEffect $ Ref.modify (appendKey event') seqRef
+onKey
+  :: Config.Config
+  -> (State.Query ~> Aff.Aff)
+  -> Event.Event
+  -> Effect.Effect Unit
+onKey config query event = Aff.launchAff_ $
+  withKeyboardEvent event \event' -> do
+    mode <- query $ Halogen.request State.GetCurrentMode
+    oldSequence <- query $ Halogen.request State.GetSequence
+    let sequence = appendKey event' oldSequence
+    query $ Halogen.action $ State.SetSequence sequence
     Maybe.maybe
-      (noMatch config query mode event' seqRef)
-      (run config event seqRef)
+      (noMatch config query mode event')
+      (run config query event)
       (lookupKeybinding config mode sequence)
 
 -- | Gevin a `Config` and a query callback, attach the keybindings in the config
 -- | to the window.
-attach :: Config.Config -> (Page.Query ~> Aff.Aff) -> Effect.Effect Unit
+attach :: Config.Config -> (State.Query ~> Aff.Aff) -> Effect.Effect Unit
 attach config query = do
   document <- HTML.window >>= Window.document <#> HTMLDocument.toEventTarget
-  seqRef <- Ref.new ""
-  listener <- EventTarget.eventListener $ onKey config query seqRef
+  listener <- EventTarget.eventListener $ onKey config query
   EventTarget.addEventListener EventTypes.keydown listener false document

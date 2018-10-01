@@ -13,7 +13,7 @@
     "dependencies:install": "bower install && yarn install",
     "build:cli": "pulp build --main Minichrome.CLI --to index.js",
     "build:ui": "pulp build --main Minichrome.UI --to ui.js",
-    "build:webview": "pulp build --main Minichrome.WebviewScript --to webview.js",
-    "build": "yarn dependencies:install && yarn build:cli && yarn build:ui && yarn build:webview"
+    "build:page": "pulp build --main Minichrome.Page --to page.js",
+    "build": "yarn dependencies:install && yarn build:cli && yarn build:ui && yarn build:page"
   }
 }
