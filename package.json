@@ -5,15 +5,25 @@
   "license": "MIT",
   "main": "index.js",
   "dependencies": {
-    "electron": "^2.0.8"
+    "babel-minify": "^0.5.0",
+    "electron": "^3.0.2",
+    "electron-packager": "^12.1.2"
+  },
+  "engines": {
+    "node": "^10.11.0"
   },
   "scripts": {
     "start": "electron .",
-    "clean": "rm -rf bower_components node_modules output *.js",
+    "clean": "rm -rf bower_components node_modules output build *.js",
     "dependencies:install": "bower install && yarn install",
     "build:cli": "pulp build --main Minichrome.CLI --to index.js",
     "build:ui": "pulp build --main Minichrome.UI --to ui.js",
     "build:page": "pulp build --main Minichrome.Page --to page.js",
-    "build": "yarn dependencies:install && yarn build:cli && yarn build:ui && yarn build:page"
+    "build": "yarn dependencies:install && yarn build:cli && yarn build:ui && yarn build:page",
+    "minify:cli": "minify index.js > build/index.js",
+    "minify:ui": "minify ui.js > build/ui.js",
+    "minify:page": "minify page.js > build/page.js",
+    "minify": "yarn build && mkdir -p build && yarn minify:cli && yarn minify:ui && yarn minify:page",
+    "package": "yarn minify && cp package.json build && cd build && electron-packager ."
   }
 }
