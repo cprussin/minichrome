@@ -719,10 +719,10 @@ electron-packager@^12.1.2:
     semver "^5.3.0"
     yargs-parser "^10.0.0"
 
-electron@^3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-3.0.2.tgz#0aed43a331b43dfe671ddb54d75fc4102d362959"
-  integrity sha512-BsU/KJRPODlEoaOZhsmFTIaG2h1Y28JCrqeTGVqGL+fef/7xQZdHx5ZCStUDXXUSTcoqiHlc5QvLH4PfZFbOmg==
+electron@3.0.0-beta.5:
+  version "3.0.0-beta.5"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-3.0.0-beta.5.tgz#06e92b611d3099a03194da34a87133d34ff32851"
+  integrity sha512-93JQLKn5Bl0QNHL3qpYuUOBNHuGShJbIf+nEAqtjByyaXGF5Q+mpzKUh+gfLPUrvHfQ/VGnbJFP2k+Cp12DsGA==
   dependencies:
     "@types/node" "^8.0.24"
     electron-download "^4.1.0"
