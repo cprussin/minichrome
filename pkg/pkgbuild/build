@@ -1,0 +1,12 @@
+#!/bin/sh
+
+mkdir -p build/pkgbuild
+cd build
+tar -cvf pkgbuild/package.tar minichrome-linux-x64
+cp ../pkg/pkgbuild/PKGBUILD pkgbuild
+cd pkgbuild
+
+export PKGVER=$(node -e "console.log(require('../package.json').version)")
+export MD5SUM=$(md5sum package.tar | cut -d ' ' -f 1)
+
+makepkg -s

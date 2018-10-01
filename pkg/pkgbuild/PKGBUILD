@@ -1,0 +1,19 @@
+# Maintainer Connor Prussin <connor at prussin dot net>
+pkgname=minichrome
+pkgver=$PKGVER
+pkgrel=1
+pkgdesc="A minimal web browser"
+arch=('i686' 'x86_64')
+url="https://github.com/cprussin/minichrome"
+license=('MIT')
+depends=()
+source=(package.tar)
+md5sums=($MD5SUM)
+
+package() {
+  mkdir -p "${pkgdir}/usr/lib"
+  cp -R "${srcdir}/minichrome-linux-x64" "${pkgdir}/usr/lib"
+  mv "${pkgdir}/usr/lib/minichrome-linux-x64" "${pkgdir}/usr/lib/minichrome"
+  mkdir -p "${pkgdir}/usr/bin"
+  ln -s "${pkgdir}/usr/lib/minichrome/minichrome" "${pkgdir}/usr/bin/minichrome"
+}

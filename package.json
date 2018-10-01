@@ -24,6 +24,7 @@
     "minify:ui": "minify ui.js > build/ui.js",
     "minify:page": "minify page.js > build/page.js",
     "minify": "yarn build && mkdir -p build && yarn minify:cli && yarn minify:ui && yarn minify:page",
-    "package": "yarn minify && cp package.json build && cd build && electron-packager ."
+    "package": "yarn minify && cp package.json build && cd build && electron-packager .",
+    "pkgbuild": "yarn package && ./pkg/pkgbuild/build"
   }
 }
