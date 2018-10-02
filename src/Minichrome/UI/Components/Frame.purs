@@ -13,6 +13,7 @@ import Halogen.HTML.CSS as HalogenCSS
 import Halogen.HTML.Properties as HalogenProperties
 
 import Minichrome.Command.InputMode as InputMode
+import Minichrome.Config as Config
 import Minichrome.IPC.PageToUI as IPC
 import Minichrome.UI.Components.Messageline as Messageline
 import Minichrome.UI.Components.Modeline as Modeline
@@ -43,9 +44,16 @@ type Props p =
   | p
   )
 
-frame :: forall a p. Record (Props p) -> Halogen.HTML a State.Query
-frame props = HalogenHTML.div [ style ] $
-  [ webview, Modeline.modeline, Messageline.messageline ] <@> props
+frame
+  :: forall a p
+   . Config.Config
+  -> Record (Props p)
+  -> Halogen.HTML a State.Query
+frame config props = HalogenHTML.div [ style ] $ flip flap props
+  [ webview
+  , Modeline.modeline config
+  , Messageline.messageline config
+  ]
 
 style :: forall t p. HalogenProperties.IProp (style :: String | p) t
 style = HalogenCSS.style do

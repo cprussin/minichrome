@@ -23,14 +23,18 @@ frameContainer
 frameContainer config initialState =
   Halogen.component
     { initialState: const initialState
-    , render
+    , render: render config
     , eval: State.eval config
     , receiver: const Maybe.Nothing
     }
 
-render :: forall m. State.State m -> Halogen.ComponentHTML State.Query
-render state =
-  Frame.frame $ Record.disjointUnion state
+render
+  :: forall m
+   . Config.Config
+  -> State.State m
+  -> Halogen.ComponentHTML State.Query
+render config state =
+  Frame.frame config $ Record.disjointUnion state
     { onPageTitleUpdated: HalogenEvents.input State.UpdateTitle
     , onDidNavigate: HalogenEvents.input State.UpdateAddress
     , onDidNavigateInPage: HalogenEvents.input State.UpdateAddress

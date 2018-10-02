@@ -13,6 +13,7 @@ import Halogen.HTML as HalogenHTML
 import Halogen.HTML.CSS as HalogenCSS
 import Halogen.HTML.Properties as HalogenProperties
 
+import Minichrome.Config as Config
 import Minichrome.UI.CSS as MinichromeCSS
 import Minichrome.UI.Components.MessagelineInput as MessagelineInput
 import Minichrome.UI.State as State
@@ -30,8 +31,12 @@ type Props p =
   | p
   )
 
-messageline :: forall a p. Record (Props p) -> Halogen.HTML a State.Query
-messageline props = HalogenHTML.div [ style ] [ child props ]
+messageline
+  :: forall a p
+   . Config.Config
+  -> Record (Props p)
+  -> Halogen.HTML a State.Query
+messageline config props = HalogenHTML.div [ style config ] [ child props ]
 
 child :: forall a p. Record (Props p) -> Halogen.HTML a State.Query
 child props@{ messagelineInput } = case messagelineInput of
@@ -39,14 +44,18 @@ child props@{ messagelineInput } = case messagelineInput of
   Maybe.Just State.SearchInput -> searchInput props
   Maybe.Nothing -> text props
 
-style :: forall t p. HalogenProperties.IProp (style :: String | p) t
-style = HalogenCSS.style do
+style
+  :: forall t p
+   . Config.Config
+  -> HalogenProperties.IProp (style :: String | p) t
+style config = HalogenCSS.style do
   CSS.height $ CSS.px 20.0
   CSS.lineHeight $ CSS.px 20.0
   CSS.paddingLeft $ CSS.px 10.0
   CSS.paddingRight $ CSS.px 10.0
   CSS.fontFamily [ ] MinichromeCSS.monospace
-  CSS.background CSS.lightgrey
+  CSS.background config.modeline.messageline.bg
+  CSS.color config.modeline.messageline.fg
 
 exInput :: forall a p. Record (Props p) -> Halogen.HTML a State.Query
 exInput props = MessagelineInput.messagelineInput

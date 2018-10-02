@@ -12,6 +12,7 @@ import Halogen.HTML.CSS as HalogenCSS
 import Halogen.HTML.Properties as HalogenProperties
 
 import Minichrome.Command.InputMode as InputMode
+import Minichrome.Config as Config
 import Minichrome.UI.Components.ModelineSpacer as Spacer
 import Minichrome.UI.Components.ModelineModeIndicator as ModeIndicator
 import Minichrome.UI.Components.ModelinePageTitle as PageTitle
@@ -27,24 +28,39 @@ type Props p =
   | p
   )
 
-modeline :: forall a b p. Record (Props p) -> Halogen.HTML a b
-modeline { mode, title, address, position } =
-  HalogenHTML.div [ style ]
-    [ ModeIndicator.modeIndicator mode
-    , PageTitle.pageTitle title
-    , PageURL.pageURL address
-    , Spacer.spacer
-    , ScrollPosition.scrollPosition position
-    ]
+modeline
+  :: forall a b p
+   . Config.Config
+  -> Record (Props p)
+  -> Halogen.HTML a b
+modeline config props = HalogenHTML.div [ style config ] $
+  field props <$> config.modeline.fields <@> config
 
-style :: forall t p. HalogenProperties.IProp (style :: String | p) t
-style = HalogenCSS.style do
+field
+  :: forall a b p
+   . Record (Props p)
+  -> Config.ModelineField
+  -> Config.Config
+  -> Halogen.HTML a b
+field { mode } Config.ModeIndicator = flip ModeIndicator.modeIndicator mode
+field { title } Config.PageTitle = const $ PageTitle.pageTitle title
+field { address } Config.PageURL = flip PageURL.pageURL address
+field _ Config.Spacer =  const $ Spacer.spacer
+field { position } Config.ScrollPosition =
+  const $ ScrollPosition.scrollPosition position
+
+style
+  :: forall t p
+   . Config.Config
+  -> HalogenProperties.IProp (style :: String | p) t
+style config = HalogenCSS.style do
   CSS.height $ CSS.px 20.0
   CSS.lineHeight $ CSS.px 20.0
   CSS.paddingLeft $ CSS.px 10.0
   CSS.paddingRight $ CSS.px 10.0
   CSS.fontFamily [ ] MinichromeCSS.monospace
-  CSS.background CSS.darkgrey
+  CSS.background config.modeline.colors.bg
+  CSS.color config.modeline.colors.fg
   CSS.display CSS.flex
   CSS.flexFlow CSS.row CSS.nowrap
   CSS.borderTop CSS.solid (CSS.px 1.0) $ CSS.rgb 2 2 2

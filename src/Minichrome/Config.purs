@@ -1,12 +1,15 @@
 module Minichrome.Config
   ( Config
+  , ColorSet
   , Keybinding(..)
+  , ModelineField(..)
   , defaultConfig
   , getCommand
   ) where
 
 import Prelude
 
+import CSS as CSS
 import Data.Maybe as Maybe
 
 import Minichrome.Command.Command (Command(..))
@@ -22,6 +25,15 @@ data Keybinding = Keybinding (Array Mode) String Command
 getCommand :: Keybinding -> Command
 getCommand (Keybinding _ _ command) = command
 
+data ModelineField
+  = ModeIndicator
+  | PageTitle
+  | PageURL
+  | Spacer
+  | ScrollPosition
+
+type ColorSet = Record ( bg :: CSS.Color, fg :: CSS.Color )
+
 -- | This `Record` describes the Minichrome config.  Fields are:
 -- |
 -- | - `port`: The port number to run the HTTP server interface on.
@@ -34,6 +46,13 @@ type Config = Record
   ( developerMode :: Boolean
   , port :: Int
   , browser :: Maybe.Maybe String
+  , modeline :: Record
+    ( fields :: Array ModelineField
+    , colors :: ColorSet
+    , url :: ColorSet
+    , messageline :: ColorSet
+    , modeIndicator :: Record ( normal :: ColorSet , insert :: ColorSet )
+    )
   , keybindings :: Array Keybinding
   )
 
@@ -43,6 +62,16 @@ defaultConfig =
   { developerMode: false
   , port: 42042
   , browser: Maybe.Nothing
+  , modeline:
+    { fields: [ ModeIndicator, PageTitle, PageURL, Spacer, ScrollPosition ]
+    , colors: { bg: CSS.darkgrey, fg: CSS.black }
+    , url: { bg: CSS.darkgrey, fg: CSS.blue }
+    , messageline: { bg: CSS.lightgrey, fg: CSS.black }
+    , modeIndicator:
+      { normal: { bg: CSS.blue, fg: CSS.white }
+      , insert: { bg: CSS.magenta, fg: CSS.white }
+      }
+    }
   , keybindings:
     [ Keybinding [ Normal ] "h" $ Scroll $ Left 1
     , Keybinding [ Normal ] "l" $ Scroll $ Right 1
