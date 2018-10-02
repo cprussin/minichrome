@@ -35,6 +35,7 @@ help :: String
 help = String.joinWith "\n"
   [ ""
   , "Usage:"
+  , "  minichrome                  start a new minichrome server"
   , "  minichrome browse <url>     open a new window with the given url"
   , "  minichrome exec <command>   run the command in the current window"
   , "  minichrome help             show this helpful help"
