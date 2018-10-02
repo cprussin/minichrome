@@ -1,14 +1,14 @@
 # Maintainer Connor Prussin <connor at prussin dot net>
 pkgname=minichrome
-pkgver=$PKGVER
+pkgver=%PKGVER%
 pkgrel=1
 pkgdesc="A minimal web browser"
 arch=('i686' 'x86_64')
 url="https://github.com/cprussin/minichrome"
 license=('MIT')
 depends=()
-source=(package.tar)
-md5sums=($MD5SUM)
+source=('%ARCHIVE%')
+md5sums=('%MD5SUM%')
 
 package() {
   mkdir -p "${pkgdir}/usr/lib"
