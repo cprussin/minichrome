@@ -20,11 +20,7 @@
     "build:ui": "pulp build --main Minichrome.UI --to ui.js",
     "build:page": "pulp build --main Minichrome.Page --to page.js",
     "build": "yarn dependencies:install && yarn build:cli && yarn build:ui && yarn build:page",
-    "minify:cli": "minify index.js > build/index.js",
-    "minify:ui": "minify ui.js > build/ui.js",
-    "minify:page": "minify page.js > build/page.js",
-    "minify": "yarn build && mkdir -p build && yarn minify:cli && yarn minify:ui && yarn minify:page",
-    "package": "yarn minify && cp package.json build && cd build && electron-packager .",
+    "package": "yarn build && ./pkg/build",
     "pkgbuild": "yarn package && ./pkg/pkgbuild/build"
   }
 }

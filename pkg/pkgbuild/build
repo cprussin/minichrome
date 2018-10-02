@@ -2,10 +2,8 @@
 
 PKGVER=$(node -e "console.log(require('./package.json').version)")
 ARCHIVE=minichrome-$PKGVER.tar.gz
+MD5SUM=$(md5sum build/$ARCHIVE | cut -d ' ' -f 1)
 
-cd build
-tar -czvf ../pkg/pkgbuild/aur/$ARCHIVE minichrome-linux-x64
-cd ../pkg/pkgbuild/aur
-MD5SUM=$(md5sum $ARCHIVE | cut -d ' ' -f 1)
+cd pkg/pkgbuild/aur
 sed "s/%PKGVER%/$PKGVER/;s/%ARCHIVE%/$ARCHIVE/;s/%MD5SUM%/$MD5SUM/" ../PKGBUILD > PKGBUILD
 makepkg --printsrcinfo > .SRCINFO

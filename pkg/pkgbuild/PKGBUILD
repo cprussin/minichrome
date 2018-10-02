@@ -7,7 +7,7 @@ arch=('i686' 'x86_64')
 url="https://github.com/cprussin/minichrome"
 license=('MIT')
 depends=()
-source=('%ARCHIVE%')
+source=('https://github.com/cprussin/minichrome/releases/download/v%PKGVER%/%ARCHIVE%')
 md5sums=('%MD5SUM%')
 
 package() {
