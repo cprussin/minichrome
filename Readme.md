@@ -37,7 +37,10 @@ There is an AUR package for arch linux users, available
 _We welcome contributions--please help us by contributing packaging
 files for other distributions!_
 
-For other users, you can download and install from source:
+For other users, you can download and install from the latest [release
+tarball](https://github.com/cprussin/minichrome/releases).
+
+You can also build from source:
 
 ```bash
 cd <source directory>
