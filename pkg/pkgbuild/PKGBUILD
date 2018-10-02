@@ -15,5 +15,8 @@ package() {
   cp -R "${srcdir}/minichrome-linux-x64" "${pkgdir}/usr/lib"
   mv "${pkgdir}/usr/lib/minichrome-linux-x64" "${pkgdir}/usr/lib/minichrome"
   mkdir -p "${pkgdir}/usr/bin"
-  ln -s "${pkgdir}/usr/lib/minichrome/minichrome" "${pkgdir}/usr/bin/minichrome"
+  ln -s "/usr/lib/minichrome/minichrome" "${pkgdir}/usr/bin/minichrome"
+  find "${pkgdir}" -type d -exec chmod 755 {} +
+  find "${pkgdir}" -type f -exec chmod 644 {} +
+  chmod 755 "${pkgdir}/usr/lib/minichrome/minichrome"
 }
