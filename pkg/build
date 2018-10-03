@@ -5,9 +5,16 @@ ARCHIVE=minichrome-$PKGVER.tar.gz
 
 mkdir -p build
 cp package.json build
-minify index.js > build/index.js
-minify ui.js > build/ui.js
-minify page.js > build/page.js
+
+pulp build --main Minichrome.CLI --to build/index.js
+minify build/index.js -o build/index.js
+
+pulp build --main Minichrome.UI --to build/ui.js
+minify build/ui.js -o build/ui.js
+
+pulp build --main Minichrome.Page --to build/page.js
+minify build/page.js -o build/page.js
+
 cd build
 electron-packager .
 tar -czvf $ARCHIVE minichrome-linux-x64

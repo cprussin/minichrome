@@ -14,12 +14,9 @@
   },
   "scripts": {
     "start": "electron .",
-    "clean": "rm -rf bower_components node_modules output build *.js",
+    "clean": "rm -rf bower_components node_modules output build",
     "dependencies:install": "bower install && yarn install",
-    "build:cli": "pulp build --main Minichrome.CLI --to index.js",
-    "build:ui": "pulp build --main Minichrome.UI --to ui.js",
-    "build:page": "pulp build --main Minichrome.Page --to page.js",
-    "build": "yarn dependencies:install && yarn build:cli && yarn build:ui && yarn build:page",
+    "build": "yarn dependencies:install && pulp build",
     "package": "yarn build && ./pkg/build",
     "pkgbuild": "yarn package && ./pkg/pkgbuild/build"
   }

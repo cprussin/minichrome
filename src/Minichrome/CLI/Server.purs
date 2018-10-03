@@ -15,10 +15,12 @@ import HTTPure as HTTPure
 import Node.Electron.App as App
 import Node.Electron.BrowserWindow as BrowserWindow
 import Node.Electron.WebContents as WebContents
-import Node.Globals as Globals
 
 import Minichrome.Config as Config
 import Minichrome.IPC.CLIToUI as IPC
+
+-- | TODO replace this hack with real FFI bindings
+foreign import root :: String
 
 -- | The data URL encoding the page contents for the window.
 pageDataURL :: String -> String
@@ -31,7 +33,9 @@ pageDataURL url = "data:text/html;charset=UTF-8," <> pageData
           "<meta charset='UTF-8' />" <>
         "</head>" <>
         "<body style='width: 100%; height: 100%; margin: 0;'>" <>
-          "<script src='ui.js' data-url='"<> url <>"'></script>" <>
+          "<script data-url='"<> url <>"'>" <>
+            "require(__filename + '/ui.js');" <>
+          "</script>" <>
         "</body>" <>
       "</html>"
 
@@ -42,7 +46,7 @@ openWindow config url = do
   BrowserWindow.setMenu window Maybe.Nothing
   when config.developerMode $ WebContents.openDevTools window.webContents
   BrowserWindow.loadURL window (pageDataURL url) $
-    BrowserWindow.baseURLForDataURL := ("file://" <> Globals.__dirname <> "/")
+    BrowserWindow.baseURLForDataURL := ("file://" <> root <> "/")
   BrowserWindow.onceReadyToShow window $ BrowserWindow.show window
 
 -- | Handle HTTP requests to open a new window to a URL given by the HTTP body.
