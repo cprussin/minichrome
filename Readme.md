@@ -82,6 +82,8 @@ Minichrome uses vim-style keybindings:
 - <kbd>C-0</kbd> - reset zoom
 - <kbd>C-o</kbd> - go back
 - <kbd>C-i</kbd> - go forward
+- <kbd>C-r</kbd> - refresh page
+- <kbd>C-R</kbd> - hard refresh page (refresh ignoring cache)
 - <kbd>y y</kbd> - yank the current URL into the clipboard
 - <kbd>Escape</kbd> - leave insert mode or clear the current search
 - <kbd>:</kbd> - enter ex mode

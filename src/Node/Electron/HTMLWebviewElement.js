@@ -24,6 +24,18 @@ exports.goForward = function (elem) {
   };
 };
 
+exports.reload = function (elem) {
+  return function () {
+    elem.reload();
+  };
+};
+
+exports.reloadIgnoringCache = function (elem) {
+  return function () {
+    elem.reloadIgnoringCache();
+  };
+};
+
 exports.isDevToolsOpened = function (elem) {
   return function () {
     return elem.isDevToolsOpened();

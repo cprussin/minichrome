@@ -15,6 +15,8 @@ import Data.Either as Either
 import Data.Int as Int
 import Data.Maybe as Maybe
 import Data.String as String
+import Data.String.Regex as Regex
+import Data.String.Regex.Flags as RegexFlags
 import Data.Time.Duration as Duration
 import Data.Traversable as Traversable
 import Effect as Effect
@@ -203,7 +205,19 @@ eval config = case _ of
             showMessage "Going back..."
             Halogen.liftEffect $ HTMLWebviewElement.goBack elem
 
-      else pure unit
+      else
+        withWebviewElement $ HTMLWebviewElement.reload >>> Halogen.liftEffect
+
+  (RunCommand Command.Refresh next) -> next <$
+    withWebviewElement (HTMLWebviewElement.reload >>> Halogen.liftEffect)
+
+  (RunCommand Command.HardRefresh next) -> next <$
+    withWebviewElement
+      (HTMLWebviewElement.reloadIgnoringCache >>> Halogen.liftEffect)
+
+  (RunCommand (Command.Go url) next) -> next <$
+    let newUrl = prefixProtocol url
+    in Halogen.modify_ _{ webviewAddressAttr = newUrl, address = newUrl }
 
   (RunCommand (Command.Yank YankTarget.URL) next) -> next <$ do
     Halogen.gets _.address >>= Clipboard.writeText >>> Halogen.liftEffect
@@ -263,12 +277,21 @@ repeat count = const >>> flip Traversable.traverse (1 .. count) >>> void
 
 -- | Get the initial URL by reading the 'data-url' attribute on the script tag.
 initialURL :: Effect.Effect String
-initialURL = MaybeT.runMaybeT url >>= Maybe.fromMaybe "" >>> pure
+initialURL =
+  MaybeT.runMaybeT url >>= Maybe.fromMaybe "" >>> prefixProtocol >>> pure
   where
     document = HTML.window >>= Window.document
     currentScript = MaybeT.MaybeT $ document >>= HTMLDocument.currentScript
     urlAttribute = Element.getAttribute "data-url" >>> MaybeT.MaybeT
     url = currentScript >>= HTMLScriptElement.toElement >>> urlAttribute
+
+prefixProtocol :: String -> String
+prefixProtocol str =
+  Maybe.fromMaybe str $ ifM matchProtocol (pure str) (pure $ prefix str)
+  where
+    protocolRegex = Either.hush $ Regex.regex "^[a-z]+://" RegexFlags.noFlags
+    matchProtocol = Regex.test <$> protocolRegex <@> str
+    prefix = ("http://" <> _)
 
 runCommand
   :: forall m

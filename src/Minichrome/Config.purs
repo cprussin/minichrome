@@ -86,6 +86,8 @@ defaultConfig =
     , Keybinding [ Normal, Insert ] "C-0" $ Zoom Reset
     , Keybinding [ Normal, Insert ] "C-o" $ Navigate (-1)
     , Keybinding [ Normal, Insert ] "C-i" $ Navigate 1
+    , Keybinding [ Normal, Insert ] "C-r" $ Refresh
+    , Keybinding [ Normal, Insert ] "C-R" $ HardRefresh
     , Keybinding [ Normal ] "y y" $ Yank URL
     , Keybinding [ Insert ] "Escape" $ SetMode Normal
     , Keybinding [ Normal ] ":" $ Ex
