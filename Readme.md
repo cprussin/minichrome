@@ -90,6 +90,7 @@ Minichrome uses vim-style keybindings:
 - <kbd>/</kbd> - start a search
 - <kbd>n</kbd> - go to the next search result
 - <kbd>N</kbd> - go to the previous search result
+- <kbd>i</kbd> - select the first insertable element and switch to insert mode
 
 ## Configuring
 

@@ -30,6 +30,7 @@ import Node.ChildProcess as ChildProcess
 import Node.Electron.Clipboard as Clipboard
 import Node.Electron.HTMLWebviewElement as HTMLWebviewElement
 import Web.DOM.Element as Element
+import Web.DOM.Node as Node
 import Web.HTML as HTML
 import Web.HTML.HTMLDocument as HTMLDocument
 import Web.HTML.HTMLElement as HTMLElement
@@ -171,7 +172,15 @@ eval config = case _ of
   (RunCommand (Command.SetMode mode) next) -> next <$ do
     Halogen.modify_ _{ mode = mode }
     when (mode == InputMode.Normal) $
-      withWebviewElement $ flip IPCDown.send IPCDown.Blur >>> Halogen.liftEffect
+      withWebviewElement $
+        HTMLWebviewElement.toHTMLElement >>>
+        HTMLElement.blur >>>
+        Halogen.liftEffect
+    when (mode == InputMode.Insert) $
+      withWebviewElement \elem -> Halogen.liftEffect do
+        unlessM (isFocused $ HTMLWebviewElement.toNode elem) $
+          HTMLElement.focus $ HTMLWebviewElement.toHTMLElement elem
+        IPCDown.send elem IPCDown.FocusNextInsertable
 
   (RunCommand (Command.Scroll direction) next) -> next <$
     withWebviewElement \elem ->
@@ -340,6 +349,13 @@ withWebviewElement cb = do
   elem <- Halogen.getHTMLElementRef webviewRef
   Maybe.maybe (Halogen.liftEffect mempty) cb $
     elem >>= HTMLWebviewElement.fromHTMLElement
+
+isFocused :: Node.Node -> Effect.Effect Boolean
+isFocused node =
+  HTML.window >>=
+  Window.document >>=
+  HTMLDocument.activeElement >>=
+  Maybe.maybe (pure false) (HTMLElement.toNode >>> Node.isEqualNode node)
 
 setZoom :: forall m. AffClass.MonadAff m => Number -> DSL m m Unit
 setZoom zoom' = do

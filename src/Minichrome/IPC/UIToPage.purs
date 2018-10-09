@@ -16,24 +16,24 @@ import Minichrome.Command.Direction as Direction
 
 data Message
   = Scroll Direction.Direction
-  | Blur
+  | FocusNextInsertable
 
 data Channel
   = ScrollC
-  | BlurC
+  | FocusNextInsertableC
 
 instance showChannel :: Show Channel where
   show ScrollC = "navigate"
-  show BlurC = "blur"
+  show FocusNextInsertableC = "focusNextInsertable"
 
 channel :: Message -> Channel
 channel (Scroll _) = ScrollC
-channel Blur = BlurC
+channel FocusNextInsertable = FocusNextInsertableC
 
 arguments :: Message -> Array String
 arguments (Scroll direction) =
   String.split (String.Pattern " ") $ show direction
-arguments Blur = [ ]
+arguments FocusNextInsertable = [ ]
 
 send :: HTMLWebviewElement.HTMLWebviewElement -> Message -> Effect.Effect Unit
 send elem message =
@@ -45,4 +45,4 @@ subscribe cb = do
   IPCRenderer.on (show ScrollC) \_ ->
     Direction.readTokens >>> Either.either mempty (Scroll >>> cb)
 
-  IPCRenderer.on (show BlurC) \_ _ -> cb Blur
+  IPCRenderer.on (show FocusNextInsertableC) \_ _ -> cb FocusNextInsertable

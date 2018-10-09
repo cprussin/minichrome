@@ -1,5 +1,5 @@
 module Minichrome.Page.ScrollingPosition
-  ( setup
+  ( installScrollHandler
   ) where
 
 import Prelude
@@ -21,8 +21,8 @@ import Minichrome.Page.Temp as Temp
 scrollHandlerThrottle :: Number
 scrollHandlerThrottle = 50.0
 
-setup :: Effect.Effect Unit
-setup = do
+installScrollHandler :: Effect.Effect Unit
+installScrollHandler = do
   target <- Window.toEventTarget <$> HTML.window
   listener <- Util.throttle scrollHandlerThrottle true onScroll
   Util.attachListener Temp.scroll listener target $ Temp.passive := true

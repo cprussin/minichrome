@@ -8,6 +8,8 @@ module Minichrome.Page.Temp
   , passive
   , capture
   , addEventListener
+  , matches
+  , scrollIntoView
   ) where
 
 import Prelude
@@ -15,8 +17,11 @@ import Prelude
 import Data.Options as Options
 import Effect as Effect
 import Foreign as Foreign
+import Web.DOM.Element as Element
+import Web.DOM.ParentNode as ParentNode
 import Web.Event.Event as Event
 import Web.Event.EventTarget as EventTarget
+import Web.HTML.HTMLElement as HTMLElement
 
 scroll :: Event.EventType
 scroll = Event.EventType "scroll"
@@ -50,3 +55,12 @@ addEventListener
   -> Effect.Effect Unit
 addEventListener eventType listener target =
   Options.options >>> addEventListenerImpl eventType listener target
+
+foreign import matches
+  :: ParentNode.QuerySelector
+  -> Element.Element
+  -> Effect.Effect Boolean
+
+foreign import scrollIntoView
+  :: HTMLElement.HTMLElement
+  -> Effect.Effect Unit

@@ -90,6 +90,7 @@ defaultConfig =
     , Keybinding [ Normal, Insert ] "C-R" $ HardRefresh
     , Keybinding [ Normal ] "y y" $ Yank URL
     , Keybinding [ Insert ] "Escape" $ SetMode Normal
+    , Keybinding [ Normal ] "i" $ SetMode Insert
     , Keybinding [ Normal ] ":" $ Ex
     , Keybinding [ Normal ] "/" $ StartSearch
     , Keybinding [ Normal ] "n" $ SearchForward

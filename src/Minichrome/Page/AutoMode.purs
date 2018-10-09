@@ -1,79 +1,58 @@
 module Minichrome.Page.AutoMode
-  ( setup
+  ( focusNextInsertable
+  , installOnFocusHandler
   ) where
 
 import Prelude
 
-import Data.Array as Array
 import Data.Maybe as Maybe
 import Data.Options ((:=))
 import Effect as Effect
 import Web.DOM.Element as Element
+import Web.DOM.NodeList as NodeList
 import Web.Event.Event as Event
 import Web.HTML as HTML
 import Web.HTML.Event.EventTypes as EventTypes
-import Web.HTML.HTMLInputElement as HTMLInputElement
+import Web.HTML.HTMLElement as HTMLElement
 import Web.HTML.Window as Window
-import Web.UIEvent.FocusEvent as FocusEvent
 
 import Minichrome.Command.InputMode as InputMode
 import Minichrome.IPC.PageToUI as IPCUp
 import Minichrome.Page.Temp as Temp
 import Minichrome.Page.Util as Util
 
-setup :: Effect.Effect Unit
-setup = setupOnFocus
+focusNextInsertable :: Effect.Effect Unit
+focusNextInsertable =
+  Util.getActiveElement >>= Maybe.maybe moveFocus \elem ->
+    unlessM (Util.isInsertable $ HTMLElement.toElement elem) moveFocus
+  where
+    moveFocus = Util.withAllInsertableElements $
+      NodeList.toArray >=> firstVisible >=> Maybe.maybe mempty HTMLElement.focus
+    firstVisible = Util.findMapM $ HTMLElement.fromNode >>>
+      Maybe.maybe (pure Maybe.Nothing) (Util.maybeBoolM Util.isVisible)
 
-setupOnFocus :: Effect.Effect Unit
-setupOnFocus = do
+installOnFocusHandler :: Effect.Effect Unit
+installOnFocusHandler = do
   target <- Window.toEventTarget <$> HTML.window
   Util.attachListener Temp.focusin (\e -> onFocus e) target $ Temp.once := true
 
-onFocus :: Event.Event -> Effect.Effect Unit
-onFocus =
-  eventTarget >>> ifIsInsertable
-    (\target -> toInsertMode target)
-    (\_ -> setupOnFocus)
-
-setupOnBlur :: Element.Element -> Effect.Effect Unit
-setupOnBlur element =
+installOnBlurHandler :: Element.Element -> Effect.Effect Unit
+installOnBlurHandler element =
   Util.attachListener EventTypes.blur onBlur target $ Temp.once := true
   where
     target = Element.toEventTarget element
 
+onFocus :: Event.Event -> Effect.Effect Unit
+onFocus =
+  Util.eventTarget >>> ifIsInsertable
+    (\target -> toInsertMode target)
+    (\_ -> installOnFocusHandler)
+
 onBlur :: Event.Event -> Effect.Effect Unit
 onBlur =
-  relatedFocusTarget >>> ifIsInsertable
-    (\target -> setupOnBlur target)
+  Util.relatedFocusTarget >>> ifIsInsertable
+    (\target -> installOnBlurHandler target)
     (\_ -> toNormalMode)
-
-isInsertable :: Element.Element -> Effect.Effect Boolean
-isInsertable elem =
-  case Element.tagName elem of
-    "INPUT" ->
-      Maybe.maybe (pure false) isInsertableInput $
-        HTMLInputElement.fromElement elem
-    "TEXTAREA" -> pure true
-    otherwise -> pure false
-
-isInsertableInput :: HTMLInputElement.HTMLInputElement -> Effect.Effect Boolean
-isInsertableInput elem =
-  HTMLInputElement.type_ elem <#> flip Array.elem
-    [ "color"
-    , "date"
-    , "datetime-local"
-    , "email"
-    , "month"
-    , "number"
-    , "password"
-    , "range"
-    , "search"
-    , "tel"
-    , "text"
-    , "time"
-    , "url"
-    , "week"
-    ]
 
 setMode :: InputMode.Mode -> Effect.Effect Unit
 setMode = IPCUp.SetMode >>> IPCUp.send
@@ -81,19 +60,12 @@ setMode = IPCUp.SetMode >>> IPCUp.send
 toInsertMode :: Element.Element -> Effect.Effect Unit
 toInsertMode target = do
   setMode InputMode.Insert
-  setupOnBlur target
+  installOnBlurHandler target
 
 toNormalMode :: Effect.Effect Unit
 toNormalMode = do
   setMode InputMode.Normal
-  setupOnFocus
-
-relatedFocusTarget :: Event.Event -> Maybe.Maybe Element.Element
-relatedFocusTarget =
-  FocusEvent.fromEvent >=> FocusEvent.relatedTarget >=> Element.fromEventTarget
-
-eventTarget :: Event.Event -> Maybe.Maybe Element.Element
-eventTarget = Event.target >=> Element.fromEventTarget
+  installOnFocusHandler
 
 ifIsInsertable
   :: (Element.Element -> Effect.Effect Unit)
@@ -102,4 +74,4 @@ ifIsInsertable
   -> Effect.Effect Unit
 ifIsInsertable insertable notInsertable =
   Maybe.maybe' notInsertable \target' ->
-    ifM (isInsertable target') (insertable target') $ notInsertable unit
+    ifM (Util.isInsertable target') (insertable target') $ notInsertable unit
