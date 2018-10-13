@@ -17,7 +17,7 @@ import Web.Event.Event as Event
 import Web.HTML.HTMLInputElement as HTMLInputElement
 import Web.UIEvent.KeyboardEvent as KeyboardEvent
 
-import Minichrome.UI.CSS as MinichromeCSS
+import Minichrome.Temp.CSS as TCSS
 import Minichrome.UI.State as State
 
 type Props p =
@@ -52,16 +52,16 @@ style = HalogenCSS.style do
 prefixStyle :: forall t p. HalogenProperties.IProp (style :: String | p) t
 prefixStyle = HalogenCSS.style do
   CSS.width $ CSS.px 10.0
-  CSS.fontFamily [ ] MinichromeCSS.monospace
+  CSS.fontFamily [ ] TCSS.monospace
 
 inputStyle :: forall t p. HalogenProperties.IProp (style :: String | p) t
 inputStyle = HalogenCSS.style do
   CSS.flexGrow 1
   CSS.background $ CSS.rgba 0 0 0 0.0
-  CSS.fontFamily [ ] MinichromeCSS.monospace
+  CSS.fontFamily [ ] TCSS.monospace
   CSS.padding (CSS.px 0.0) (CSS.px 0.0) (CSS.px 0.0) (CSS.px 0.0)
-  MinichromeCSS.borderWidth $ CSS.px 0.0
-  MinichromeCSS.outlineWidth $ CSS.px 0.0
+  TCSS.borderWidth $ CSS.px 0.0
+  TCSS.outlineWidth $ CSS.px 0.0
 
 handleKeyDown
   :: forall p

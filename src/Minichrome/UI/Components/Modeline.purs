@@ -13,12 +13,12 @@ import Halogen.HTML.Properties as HalogenProperties
 
 import Minichrome.Command.InputMode as InputMode
 import Minichrome.Config as Config
+import Minichrome.Temp.CSS as TCSS
 import Minichrome.UI.Components.ModelineSpacer as Spacer
 import Minichrome.UI.Components.ModelineModeIndicator as ModeIndicator
 import Minichrome.UI.Components.ModelinePageTitle as PageTitle
 import Minichrome.UI.Components.ModelinePageURL as PageURL
 import Minichrome.UI.Components.ModelineScrollPosition as ScrollPosition
-import Minichrome.UI.CSS as MinichromeCSS
 
 type Props p =
   ( mode :: InputMode.Mode
@@ -58,7 +58,7 @@ style config = HalogenCSS.style do
   CSS.lineHeight $ CSS.px 20.0
   CSS.paddingLeft $ CSS.px 10.0
   CSS.paddingRight $ CSS.px 10.0
-  CSS.fontFamily [ ] MinichromeCSS.monospace
+  CSS.fontFamily [ ] TCSS.monospace
   CSS.background config.modeline.colors.bg
   CSS.color config.modeline.colors.fg
   CSS.display CSS.flex

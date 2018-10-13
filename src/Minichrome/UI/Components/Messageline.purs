@@ -14,7 +14,7 @@ import Halogen.HTML.CSS as HalogenCSS
 import Halogen.HTML.Properties as HalogenProperties
 
 import Minichrome.Config as Config
-import Minichrome.UI.CSS as MinichromeCSS
+import Minichrome.Temp.CSS as TCSS
 import Minichrome.UI.Components.MessagelineInput as MessagelineInput
 import Minichrome.UI.State as State
 
@@ -53,7 +53,7 @@ style config = HalogenCSS.style do
   CSS.lineHeight $ CSS.px 20.0
   CSS.paddingLeft $ CSS.px 10.0
   CSS.paddingRight $ CSS.px 10.0
-  CSS.fontFamily [ ] MinichromeCSS.monospace
+  CSS.fontFamily [ ] TCSS.monospace
   CSS.background config.modeline.messageline.bg
   CSS.color config.modeline.messageline.fg
 

@@ -12,10 +12,10 @@ import Data.Either as Either
 import Data.Int as Int
 import Data.Maybe as Maybe
 import Effect as Effect
+import Node.Electron.Halogen as HalogenElectron
 import Node.Electron.IPCRenderer as IPCRenderer
 
 import Minichrome.Command.InputMode as InputMode
-import Minichrome.UI.WebviewEvents as WebviewEvents
 
 data Message
   = SetScrollPosition Int
@@ -46,7 +46,7 @@ args (SetMode mode) = [ show mode ]
 send :: Message -> Effect.Effect Unit
 send message = IPCRenderer.sendToHost (show $ channel message) (args message)
 
-fromEvent :: WebviewEvents.IPCMessageEvent -> Maybe.Maybe Message
+fromEvent :: HalogenElectron.IPCMessageEvent -> Maybe.Maybe Message
 fromEvent event = readChannel event.channel >>= case _ of
   SetModeC -> event.args !! 0 >>= InputMode.read >>> Either.hush <#> SetMode
   SetScrollPositionC -> event.args !! 0 >>= Int.fromString <#> SetScrollPosition

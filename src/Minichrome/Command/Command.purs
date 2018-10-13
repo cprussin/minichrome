@@ -128,7 +128,7 @@ readTokens tokens = Either.note "No command" (tokens !! 0) >>= case _ of
   badCmd -> Either.Left $ invalidCommandMessage badCmd
 
 tokenTail :: Array String -> Either.Either String (Array String)
-tokenTail tokens = commandNote tokens (Array.tail tokens)
+tokenTail tokens = commandNote tokens $ Array.tail tokens
 
 commandNote :: forall t. Array String -> Maybe.Maybe t -> Either.Either String t
 commandNote = String.joinWith " " >>> invalidCommandMessage >>> Either.note

@@ -18,8 +18,10 @@ import Web.HTML.Window as Window
 
 import Minichrome.Command.InputMode as InputMode
 import Minichrome.IPC.PageToUI as IPCUp
-import Minichrome.Page.Temp as Temp
 import Minichrome.Page.Util as Util
+import Minichrome.Temp.Event as TEvent
+import Minichrome.Temp.Foldable as Foldable
+import Minichrome.Temp.Filterable as Filterable
 
 focusNextInsertable :: Effect.Effect Unit
 focusNextInsertable =
@@ -28,17 +30,18 @@ focusNextInsertable =
   where
     moveFocus = Util.withAllInsertableElements $
       NodeList.toArray >=> firstVisible >=> Maybe.maybe mempty HTMLElement.focus
-    firstVisible = Util.findMapM $ HTMLElement.fromNode >>>
-      Maybe.maybe (pure Maybe.Nothing) (Util.maybeBoolM Util.isVisible)
+    firstVisible = Foldable.findMapM $ HTMLElement.fromNode >>>
+      Maybe.maybe (pure Maybe.Nothing) (Filterable.maybeBoolM Util.isVisible)
 
 installOnFocusHandler :: Effect.Effect Unit
 installOnFocusHandler = do
   target <- Window.toEventTarget <$> HTML.window
-  Util.attachListener Temp.focusin (\e -> onFocus e) target $ Temp.once := true
+  Util.attachListener TEvent.focusin (\e -> onFocus e) target $
+    TEvent.once := true
 
 installOnBlurHandler :: Element.Element -> Effect.Effect Unit
 installOnBlurHandler element =
-  Util.attachListener EventTypes.blur onBlur target $ Temp.once := true
+  Util.attachListener EventTypes.blur onBlur target $ TEvent.once := true
   where
     target = Element.toEventTarget element
 

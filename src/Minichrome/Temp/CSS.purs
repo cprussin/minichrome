@@ -1,6 +1,6 @@
 -- | This module provides some CSS values that are missing from the `CSS`
 -- | module.
-module Minichrome.UI.CSS
+module Minichrome.Temp.CSS
   ( monospace
   , UserSelect
   , userSelect

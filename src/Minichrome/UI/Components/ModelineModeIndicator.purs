@@ -12,7 +12,7 @@ import Halogen.HTML.Properties as HalogenProperties
 
 import Minichrome.Config as Config
 import Minichrome.Command.InputMode as InputMode
-import Minichrome.UI.CSS as MinichromeCSS
+import Minichrome.Temp.CSS as TCSS
 
 modeIndicator :: forall a b. Config.Config -> InputMode.Mode -> Halogen.HTML a b
 modeIndicator config mode = HalogenHTML.span [ style config mode ]
@@ -28,8 +28,8 @@ style config mode = HalogenCSS.style do
   CSS.paddingLeft $ CSS.px 8.0
   CSS.paddingRight $ CSS.px 8.0
   CSS.marginRight $ CSS.px 10.0
-  MinichromeCSS.cursor MinichromeCSS.defaultCursor
-  MinichromeCSS.userSelect MinichromeCSS.none
+  TCSS.cursor TCSS.defaultCursor
+  TCSS.userSelect TCSS.none
   CSS.background $ case mode of
     InputMode.Normal -> config.modeline.modeIndicator.normal.bg
     InputMode.Insert -> config.modeline.modeIndicator.insert.bg

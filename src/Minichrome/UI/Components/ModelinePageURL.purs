@@ -12,7 +12,7 @@ import Halogen.HTML.CSS as HalogenCSS
 import Halogen.HTML.Properties as HalogenProperties
 
 import Minichrome.Config as Config
-import Minichrome.UI.CSS as MinichromeCSS
+import Minichrome.Temp.CSS as TCSS
 
 pageURL :: forall a b. Config.Config -> String -> Halogen.HTML a b
 pageURL config address = HalogenHTML.span [ style config ]
@@ -26,7 +26,7 @@ style config = HalogenCSS.style do
   CSS.color config.modeline.url.fg
   CSS.background config.modeline.url.bg
   CSSOverflow.overflow CSSOverflow.hidden
-  MinichromeCSS.textOverflow MinichromeCSS.Ellipsis
+  TCSS.textOverflow TCSS.Ellipsis
   CSS.textWhitespace CSS.whitespaceNoWrap
   CSS.maxWidth $ CSS.pct 60.0
   CSS.marginRight $ CSS.px 20.0

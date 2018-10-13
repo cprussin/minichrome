@@ -47,6 +47,7 @@ import Minichrome.Config as Config
 import Minichrome.CLI.Client as Client
 import Minichrome.IPC.PageToUI as IPCUp
 import Minichrome.IPC.UIToPage as IPCDown
+import Minichrome.Temp.DOM as DOM
 
 type Input = Unit
 
@@ -310,16 +311,11 @@ runCommand
   -> DSL m m Unit
 runCommand config = Client.exec config >>> Aff.launchAff_ >>> Halogen.liftEffect
 
-foreign import setWindowTitle
-  :: HTMLDocument.HTMLDocument
-  -> String
-  -> Effect.Effect Unit
-
 updateWindowTitle :: forall m. AffClass.MonadAff m => DSL m m Unit
 updateWindowTitle = do
   state <- Halogen.get
   Halogen.liftEffect $ HTML.window >>= Window.document >>=
-    flip setWindowTitle (state.title <> " - " <> state.address)
+    flip DOM.setWindowTitle (state.title <> " - " <> state.address)
 
 showMessage :: forall m. AffClass.MonadAff m => String -> DSL m m Unit
 showMessage message = do

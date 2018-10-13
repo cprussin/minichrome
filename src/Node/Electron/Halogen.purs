@@ -1,4 +1,4 @@
-module Minichrome.UI.WebviewEvents
+module Node.Electron.Halogen
   ( PageTitleUpdatedEvent
   , DidNavigateEvent
   , NewWindowEvent

@@ -11,7 +11,7 @@ import Halogen.HTML as HalogenHTML
 import Halogen.HTML.CSS as HalogenCSS
 import Halogen.HTML.Properties as HalogenProperties
 
-import Minichrome.UI.CSS as MinichromeCSS
+import Minichrome.Temp.CSS as TCSS
 
 pageTitle :: forall a b. String -> Halogen.HTML a b
 pageTitle title = HalogenHTML.span [ style ] [ HalogenHTML.text title ]
@@ -21,5 +21,5 @@ style = HalogenCSS.style do
   CSS.marginRight $ CSS.px 20.0
   CSS.maxWidth $ CSS.pct 20.0
   CSSOverflow.overflow CSSOverflow.hidden
-  MinichromeCSS.textOverflow MinichromeCSS.Ellipsis
+  TCSS.textOverflow TCSS.Ellipsis
   CSS.textWhitespace CSS.whitespaceNoWrap

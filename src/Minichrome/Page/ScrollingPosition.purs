@@ -16,7 +16,7 @@ import Web.HTML.Window as Window
 
 import Minichrome.IPC.PageToUI as IPCUp
 import Minichrome.Page.Util as Util
-import Minichrome.Page.Temp as Temp
+import Minichrome.Temp.Event as TEvent
 
 scrollHandlerThrottle :: Number
 scrollHandlerThrottle = 50.0
@@ -25,7 +25,7 @@ installScrollHandler :: Effect.Effect Unit
 installScrollHandler = do
   target <- Window.toEventTarget <$> HTML.window
   listener <- Util.throttle scrollHandlerThrottle true onScroll
-  Util.attachListener Temp.scroll listener target $ Temp.passive := true
+  Util.attachListener TEvent.scroll listener target $ TEvent.passive := true
 
 onScroll :: Event.Event -> Effect.Effect Unit
 onScroll = const $

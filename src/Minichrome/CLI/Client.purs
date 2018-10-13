@@ -56,7 +56,7 @@ streamToString :: Stream.Readable () -> Aff.Aff String
 streamToString stream = Aff.makeAff \done -> do
   buf <- Ref.new ""
   Stream.onDataString stream Encoding.UTF8 \str ->
-    void $ Ref.modify ((<>) str) buf
+    void $ Ref.modify (str <> _) buf
   Stream.onEnd stream $ Ref.read buf >>= Either.Right >>> done
   pure Aff.nonCanceler
 

@@ -26,11 +26,6 @@ import Minichrome.Command.InputMode as InputMode
 import Minichrome.Config as Config
 import Minichrome.UI.State as State
 
--- | This isn't defined in `Web.UIEvent.KeyboardEvent.EventTypes` but should be.
--- | TODO put a PR in to purescript-web-uievents to add this.
-keypress :: Event.EventType
-keypress = Event.EventType "keypress"
-
 -- | Return `True` if the given keybinding matches the current mode and
 -- | sequence.
 match :: InputMode.Mode -> String -> Config.Keybinding -> Boolean
@@ -53,7 +48,7 @@ appendKey :: KeyboardEvent.KeyboardEvent -> String -> String
 appendKey event currentSequence =
   if isModifier
     then currentSequence
-  else if currentSequence == ""
+  else if String.null currentSequence
     then newKey
     else currentSequence <> " " <> newKey
   where
@@ -105,9 +100,8 @@ hasModifier event =
     , KeyboardEvent.metaKey
     ]
 
--- | If the current sequence is a possible prefix for a keybinding, then show it
--- | in the message line.  Otherwise, clear it and show a message indicating
--- | that there's no match.
+-- | Clear the current sequence and show a message indicating that there's no
+-- | match.
 noMatch
   :: Config.Config
   -> (State.Query ~> Aff.Aff)

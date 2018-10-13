@@ -12,9 +12,9 @@ import Halogen.HTML as HalogenHTML
 import Halogen.HTML.Core as HalogenHTMLCore
 import Halogen.HTML.Properties as HalogenProperties
 import Halogen.HTML.CSS as HalogenCSS
+import Node.Electron.Halogen as HalogenElectron
 
 import Minichrome.IPC.PageToUI as IPC
-import Minichrome.UI.WebviewEvents as WebviewEvents
 import Minichrome.UI.State as State
 
 type Props p =
@@ -38,11 +38,11 @@ webview props =
     , HalogenProperties.ref props.ref
     , HalogenProperties.src props.address
     , HalogenProperties.attr (HalogenHTMLCore.AttrName "preload") script
-    , WebviewEvents.onPageTitleUpdated $ _.title >>> props.onPageTitleUpdated
-    , WebviewEvents.onDidNavigate $ _.url >>> props.onDidNavigate
-    , WebviewEvents.onDidNavigateInPage $ _.url >>> props.onDidNavigateInPage
-    , WebviewEvents.onNewWindow $ _.url >>> props.onNewWindow
-    , WebviewEvents.onIPCMessage $ IPC.fromEvent >=> props.onIPCMessage
+    , HalogenElectron.onPageTitleUpdated $ _.title >>> props.onPageTitleUpdated
+    , HalogenElectron.onDidNavigate $ _.url >>> props.onDidNavigate
+    , HalogenElectron.onDidNavigateInPage $ _.url >>> props.onDidNavigateInPage
+    , HalogenElectron.onNewWindow $ _.url >>> props.onNewWindow
+    , HalogenElectron.onIPCMessage $ IPC.fromEvent >=> props.onIPCMessage
     ]
     [ ]
 

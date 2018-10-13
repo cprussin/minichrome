@@ -9,7 +9,7 @@ import Halogen.HTML as HalogenHTML
 import Halogen.HTML.CSS as HalogenCSS
 import Halogen.HTML.Properties as HalogenProperties
 
-import Minichrome.UI.CSS as MinichromeCSS
+import Minichrome.Temp.CSS as TCSS
 
 scrollPosition :: forall a b. Int -> Halogen.HTML a b
 scrollPosition position =
@@ -17,8 +17,8 @@ scrollPosition position =
 
 style :: forall t p. HalogenProperties.IProp (style :: String | p) t
 style = HalogenCSS.style do
-  MinichromeCSS.cursor MinichromeCSS.defaultCursor
-  MinichromeCSS.userSelect MinichromeCSS.none
+  TCSS.cursor TCSS.defaultCursor
+  TCSS.userSelect TCSS.none
 
 formatPosition :: Int -> String
 formatPosition 0 = "Top"

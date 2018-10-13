@@ -1,15 +1,12 @@
--- | This module is for stuff that shouldn't be in Minichrome and eventually
--- | I'll pull out and put in PRs elsewhere.
-module Minichrome.Page.Temp
+module Minichrome.Temp.Event
   ( scroll
   , focusin
+  , keypress
   , EventListenerOptions
   , once
   , passive
   , capture
   , addEventListener
-  , matches
-  , scrollIntoView
   ) where
 
 import Prelude
@@ -17,17 +14,17 @@ import Prelude
 import Data.Options as Options
 import Effect as Effect
 import Foreign as Foreign
-import Web.DOM.Element as Element
-import Web.DOM.ParentNode as ParentNode
 import Web.Event.Event as Event
 import Web.Event.EventTarget as EventTarget
-import Web.HTML.HTMLElement as HTMLElement
 
 scroll :: Event.EventType
 scroll = Event.EventType "scroll"
 
 focusin :: Event.EventType
 focusin = Event.EventType "focusin"
+
+keypress :: Event.EventType
+keypress = Event.EventType "keypress"
 
 data EventListenerOptions
 
@@ -55,12 +52,3 @@ addEventListener
   -> Effect.Effect Unit
 addEventListener eventType listener target =
   Options.options >>> addEventListenerImpl eventType listener target
-
-foreign import matches
-  :: ParentNode.QuerySelector
-  -> Element.Element
-  -> Effect.Effect Boolean
-
-foreign import scrollIntoView
-  :: HTMLElement.HTMLElement
-  -> Effect.Effect Unit

@@ -15,12 +15,11 @@ import HTTPure as HTTPure
 import Node.Electron.App as App
 import Node.Electron.BrowserWindow as BrowserWindow
 import Node.Electron.WebContents as WebContents
+import Node.Path as Path
 
 import Minichrome.Config as Config
 import Minichrome.IPC.CLIToUI as IPC
-
--- | TODO replace this hack with real FFI bindings
-foreign import root :: String
+import Minichrome.Temp.NodeModule as NodeModule
 
 -- | The data URL encoding the page contents for the window.
 pageDataURL :: String -> String
@@ -39,6 +38,9 @@ pageDataURL url = "data:text/html;charset=UTF-8," <> pageData
         "</body>" <>
       "</html>"
 
+baseURL :: String
+baseURL = "file://" <> Path.dirname NodeModule.main.filename <> "/"
+
 -- | Open a new Minichrome window with the given config and URL.
 openWindow :: Config.Config -> String -> Effect.Effect Unit
 openWindow config url = do
@@ -46,7 +48,7 @@ openWindow config url = do
   BrowserWindow.setMenu window Maybe.Nothing
   when config.developerMode $ WebContents.openDevTools window.webContents
   BrowserWindow.loadURL window (pageDataURL url) $
-    BrowserWindow.baseURLForDataURL := ("file://" <> root <> "/")
+    BrowserWindow.baseURLForDataURL := baseURL
   BrowserWindow.onceReadyToShow window $ BrowserWindow.show window
 
 -- | Handle HTTP requests to open a new window to a URL given by the HTTP body.
