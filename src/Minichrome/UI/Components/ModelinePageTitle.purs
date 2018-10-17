@@ -18,7 +18,8 @@ pageTitle title = HalogenHTML.span [ style ] [ HalogenHTML.text title ]
 
 style :: forall t p. HalogenProperties.IProp (style :: String | p) t
 style = HalogenCSS.style do
-  CSS.marginRight $ CSS.px 20.0
+  CSS.marginRight $ CSS.px 5.0
+  CSS.marginLeft $ CSS.px 5.0
   CSS.maxWidth $ CSS.pct 20.0
   CSSOverflow.overflow CSSOverflow.hidden
   TCSS.textOverflow TCSS.Ellipsis

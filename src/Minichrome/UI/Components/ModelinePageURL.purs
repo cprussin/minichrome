@@ -23,10 +23,11 @@ style
    . Config.Config
   -> HalogenProperties.IProp (style :: String | p) t
 style config = HalogenCSS.style do
+  CSS.marginRight $ CSS.px 5.0
+  CSS.marginLeft $ CSS.px 5.0
   CSS.color config.modeline.url.fg
   CSS.background config.modeline.url.bg
   CSSOverflow.overflow CSSOverflow.hidden
   TCSS.textOverflow TCSS.Ellipsis
   CSS.textWhitespace CSS.whitespaceNoWrap
   CSS.maxWidth $ CSS.pct 60.0
-  CSS.marginRight $ CSS.px 20.0

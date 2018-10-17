@@ -10,11 +10,12 @@ module Minichrome.Config
 import Prelude
 
 import CSS as CSS
+import Data.Array as Array
 import Data.Maybe as Maybe
 
 import Minichrome.Command.Command (Command(..))
 import Minichrome.Command.Direction (Direction(..))
-import Minichrome.Command.InputMode (Mode(..))
+import Minichrome.Command.InputMode (Mode(..), allModes)
 import Minichrome.Command.YankTarget (YankTarget(..))
 import Minichrome.Command.ZoomDirection (ZoomDirection(..))
 
@@ -51,7 +52,14 @@ type Config = Record
     , colors :: ColorSet
     , url :: ColorSet
     , messageline :: ColorSet
-    , modeIndicator :: Record ( normal :: ColorSet , insert :: ColorSet )
+    , modeIndicator :: Record
+      ( normal :: ColorSet
+      , insert :: ColorSet
+      , follow :: ColorSet
+      , select :: ColorSet
+      , toggle :: ColorSet
+      , av :: ColorSet
+      )
     )
   , keybindings :: Array Keybinding
   )
@@ -70,6 +78,10 @@ defaultConfig =
     , modeIndicator:
       { normal: { bg: CSS.blue, fg: CSS.white }
       , insert: { bg: CSS.magenta, fg: CSS.white }
+      , select: { bg: CSS.magenta, fg: CSS.white }
+      , toggle: { bg: CSS.magenta, fg: CSS.white }
+      , follow: { bg: CSS.green, fg: CSS.white }
+      , av: { bg: CSS.red, fg: CSS.white }
       }
     }
   , keybindings:
@@ -81,20 +93,24 @@ defaultConfig =
     , Keybinding [ Normal ] "C-d" $ Scroll $ Down 10
     , Keybinding [ Normal ] "G" $ Scroll Bottom
     , Keybinding [ Normal ] "g g" $ Scroll Top
-    , Keybinding [ Normal, Insert ] "C-+" $ Zoom $ In 1
-    , Keybinding [ Normal, Insert ] "C--" $ Zoom $ Out 1
-    , Keybinding [ Normal, Insert ] "C-0" $ Zoom Reset
-    , Keybinding [ Normal, Insert ] "C-o" $ Navigate (-1)
-    , Keybinding [ Normal, Insert ] "C-i" $ Navigate 1
-    , Keybinding [ Normal, Insert ] "C-r" $ Refresh
-    , Keybinding [ Normal, Insert ] "C-R" $ HardRefresh
     , Keybinding [ Normal ] "y y" $ Yank URL
-    , Keybinding [ Insert ] "Escape" $ SetMode Normal
-    , Keybinding [ Normal ] "i" $ SetMode Insert
     , Keybinding [ Normal ] ":" $ Ex
     , Keybinding [ Normal ] "/" $ StartSearch
     , Keybinding [ Normal ] "n" $ SearchForward
     , Keybinding [ Normal ] "N" $ SearchBack
     , Keybinding [ Normal ] "Escape" $ CancelSearch
+    , Keybinding [ Normal ] "i" $ SetMode Insert
+    , Keybinding [ Normal ] "f" $ SetMode Follow
+    , Keybinding [ Normal ] "s" $ SetMode Select
+    , Keybinding [ Normal ] "t" $ SetMode Toggle
+    , Keybinding [ Normal ] "a" $ SetMode AV
+    , Keybinding allModes "C-+" $ Zoom $ In 1
+    , Keybinding allModes "C--" $ Zoom $ Out 1
+    , Keybinding allModes "C-0" $ Zoom Reset
+    , Keybinding allModes "C-o" $ Navigate (-1)
+    , Keybinding allModes "C-i" $ Navigate 1
+    , Keybinding allModes "C-r" $ Refresh
+    , Keybinding allModes "C-R" $ HardRefresh
+    , Keybinding (Array.delete Normal allModes) "Escape" $ SetMode Normal
     ]
   }

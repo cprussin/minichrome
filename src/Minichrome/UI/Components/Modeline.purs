@@ -56,8 +56,8 @@ style
 style config = HalogenCSS.style do
   CSS.height $ CSS.px 20.0
   CSS.lineHeight $ CSS.px 20.0
-  CSS.paddingLeft $ CSS.px 10.0
-  CSS.paddingRight $ CSS.px 10.0
+  CSS.paddingLeft $ CSS.px 5.0
+  CSS.paddingRight $ CSS.px 5.0
   CSS.fontFamily [ ] TCSS.monospace
   CSS.background config.modeline.colors.bg
   CSS.color config.modeline.colors.fg

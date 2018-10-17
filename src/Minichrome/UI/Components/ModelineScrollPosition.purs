@@ -4,6 +4,7 @@ module Minichrome.UI.Components.ModelineScrollPosition
 
 import Prelude
 
+import CSS as CSS
 import Halogen as Halogen
 import Halogen.HTML as HalogenHTML
 import Halogen.HTML.CSS as HalogenCSS
@@ -17,6 +18,8 @@ scrollPosition position =
 
 style :: forall t p. HalogenProperties.IProp (style :: String | p) t
 style = HalogenCSS.style do
+  CSS.marginRight $ CSS.px 5.0
+  CSS.marginLeft $ CSS.px 5.0
   TCSS.cursor TCSS.defaultCursor
   TCSS.userSelect TCSS.none
 

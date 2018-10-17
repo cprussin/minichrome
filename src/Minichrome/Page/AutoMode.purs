@@ -1,10 +1,12 @@
 module Minichrome.Page.AutoMode
-  ( focusNextInsertable
+  ( focusNextForMode
   , installOnFocusHandler
+  , installOnNavigateHandler
   ) where
 
 import Prelude
 
+import Data.Array as Array
 import Data.Maybe as Maybe
 import Data.Options ((:=))
 import Effect as Effect
@@ -23,15 +25,27 @@ import Minichrome.Temp.Event as TEvent
 import Minichrome.Temp.Foldable as Foldable
 import Minichrome.Temp.Filterable as Filterable
 
-focusNextInsertable :: Effect.Effect Unit
-focusNextInsertable =
-  Util.getActiveElement >>= Maybe.maybe moveFocus \elem ->
-    unlessM (Util.isInsertable $ HTMLElement.toElement elem) moveFocus
+focusNextForMode :: InputMode.Mode -> Effect.Effect Unit
+focusNextForMode mode =
+  Util.getActiveElement >>= Maybe.maybe tryMoveFocus \elem -> do
+    currentElementMode <- InputMode.modeFor $ HTMLElement.toElement elem
+    unless (currentElementMode == mode) tryMoveFocus
   where
-    moveFocus = Util.withAllInsertableElements $
-      NodeList.toArray >=> firstVisible >=> Maybe.maybe mempty HTMLElement.focus
+    tryMoveFocus =
+      Util.withAllElementsForMode mode $ NodeList.toArray >=> \nodes ->
+        if Array.null nodes then noElements else selectFirst nodes
+    noElements =
+      IPCUp.send $ IPCUp.ShowMessage $ "No elements for mode " <> show mode
+    selectFirst = firstVisible >=> Maybe.maybe mempty HTMLElement.focus
     firstVisible = Foldable.findMapM $ HTMLElement.fromNode >>>
       Maybe.maybe (pure Maybe.Nothing) (Filterable.maybeBoolM Util.isVisible)
+
+installOnNavigateHandler :: Effect.Effect Unit
+installOnNavigateHandler = do
+  target <- Window.toEventTarget <$> HTML.window
+  Util.attachListener EventTypes.unload clearMode target $ TEvent.once := true
+  where
+    clearMode = const $ setMode InputMode.Normal
 
 installOnFocusHandler :: Effect.Effect Unit
 installOnFocusHandler = do
@@ -47,22 +61,22 @@ installOnBlurHandler element =
 
 onFocus :: Event.Event -> Effect.Effect Unit
 onFocus =
-  Util.eventTarget >>> ifIsInsertable
-    (\target -> toInsertMode target)
+  Util.eventTarget >>> unlessIsNormal
+    (\target -> toModeFor target)
     (\_ -> installOnFocusHandler)
 
 onBlur :: Event.Event -> Effect.Effect Unit
 onBlur =
-  Util.relatedFocusTarget >>> ifIsInsertable
+  Util.relatedFocusTarget >>> unlessIsNormal
     (\target -> installOnBlurHandler target)
     (\_ -> toNormalMode)
 
 setMode :: InputMode.Mode -> Effect.Effect Unit
 setMode = IPCUp.SetMode >>> IPCUp.send
 
-toInsertMode :: Element.Element -> Effect.Effect Unit
-toInsertMode target = do
-  setMode InputMode.Insert
+toModeFor :: Element.Element -> Effect.Effect Unit
+toModeFor target = do
+  InputMode.modeFor target >>= setMode
   installOnBlurHandler target
 
 toNormalMode :: Effect.Effect Unit
@@ -70,11 +84,14 @@ toNormalMode = do
   setMode InputMode.Normal
   installOnFocusHandler
 
-ifIsInsertable
+unlessIsNormal
   :: (Element.Element -> Effect.Effect Unit)
   -> (Unit -> Effect.Effect Unit)
   -> Maybe.Maybe Element.Element
   -> Effect.Effect Unit
-ifIsInsertable insertable notInsertable =
-  Maybe.maybe' notInsertable \target' ->
-    ifM (Util.isInsertable target') (insertable target') $ notInsertable unit
+unlessIsNormal notNormal normal =
+  Maybe.maybe' normal \target' -> do
+    mode <- InputMode.modeFor target'
+    if mode == InputMode.Normal
+       then normal unit
+       else notNormal target'

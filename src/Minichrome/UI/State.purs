@@ -164,24 +164,21 @@ eval config = case _ of
   (IPCMessage (IPCUp.SetScrollPosition position) next) -> next <$
     Halogen.modify_ _{ position = position }
 
-  (IPCMessage (IPCUp.SetMode mode) next) -> next <$ do
-    currentMode <- Halogen.gets _.mode
-    when (currentMode /= mode) $ runCommand config $ Command.SetMode mode
+  (IPCMessage (IPCUp.SetMode mode) next) -> next <$
+    Halogen.modify_ _{ mode = mode }
+
+  (IPCMessage (IPCUp.ShowMessage message) next) -> next <$ showMessage message
 
   (RunCommand Command.Noop next) -> pure next
 
   (RunCommand (Command.SetMode mode) next) -> next <$ do
-    Halogen.modify_ _{ mode = mode }
     when (mode == InputMode.Normal) $
-      withWebviewElement $
-        HTMLWebviewElement.toHTMLElement >>>
-        HTMLElement.blur >>>
-        Halogen.liftEffect
-    when (mode == InputMode.Insert) $
+      withWebviewElement $ flip IPCDown.send IPCDown.Blur >>> Halogen.liftEffect
+    unless (mode == InputMode.Normal) $
       withWebviewElement \elem -> Halogen.liftEffect do
+        IPCDown.send elem $ IPCDown.FocusNextForMode mode
         unlessM (isFocused $ HTMLWebviewElement.toNode elem) $
           HTMLElement.focus $ HTMLWebviewElement.toHTMLElement elem
-        IPCDown.send elem IPCDown.FocusNextInsertable
 
   (RunCommand (Command.Scroll direction) next) -> next <$
     withWebviewElement \elem ->

@@ -3,19 +3,16 @@ module Minichrome.Page.Util
   , eventTarget
   , getActiveElement
   , getDocumentElement
-  , isInsertable
   , isVisible
   , relatedFocusTarget
   , throttle
-  , withAllInsertableElements
+  , withAllElementsForMode
   ) where
 
 import Prelude
 
-import Data.Array as Array
 import Data.Maybe as Maybe
 import Data.Options as Options
-import Data.String as String
 import Data.Time.Duration as Duration
 import Effect as Effect
 import Effect.Aff as Aff
@@ -33,37 +30,8 @@ import Web.HTML.HTMLElement as HTMLElement
 import Web.HTML.Window as Window
 import Web.UIEvent.FocusEvent as FocusEvent
 
-import Minichrome.Temp.DOM as DOM
+import Minichrome.Command.InputMode as InputMode
 import Minichrome.Temp.Event as TEvent
-
-insertableInputTypes :: Array String
-insertableInputTypes =
-  [ "color"
-  , "date"
-  , "datetime-local"
-  , "email"
-  , "month"
-  , "number"
-  , "password"
-  , "range"
-  , "search"
-  , "tel"
-  , "text"
-  , "time"
-  , "url"
-  , "week"
-  ]
-
-insertableSelector :: ParentNode.QuerySelector
-insertableSelector = ParentNode.QuerySelector $ String.joinWith "," selectors
-  where
-    makeInputSelector inputType = "input[type=" <> inputType <> "]"
-    inputSelectors = makeInputSelector <$> insertableInputTypes
-    otherSelectors = [ "textarea", "*[contenteditable=true]" ]
-    selectors = Array.concat [ otherSelectors, inputSelectors ]
-
-isInsertable :: Element.Element -> Effect.Effect Boolean
-isInsertable = DOM.matches insertableSelector
 
 isVisible :: HTMLElement.HTMLElement -> Effect.Effect Boolean
 isVisible element = do
@@ -71,14 +39,16 @@ isVisible element = do
   offsetHeight <- HTMLElement.offsetHeight element
   pure $ offsetWidth > 0.0 && offsetHeight > 0.0
 
-withAllInsertableElements
-  :: (NodeList.NodeList -> Effect.Effect Unit)
+withAllElementsForMode
+  :: InputMode.Mode
+  -> (NodeList.NodeList -> Effect.Effect Unit)
   -> Effect.Effect Unit
-withAllInsertableElements = bind $
-  HTML.window >>=
-  Window.document >>=
-  HTMLDocument.toParentNode >>>
-  ParentNode.querySelectorAll insertableSelector
+withAllElementsForMode =
+  InputMode.selector >>> Maybe.maybe mempty \selector -> bind $
+    HTML.window >>=
+    Window.document >>=
+    HTMLDocument.toParentNode >>>
+    ParentNode.querySelectorAll selector
 
 getDocumentElement :: Effect.Effect (Maybe.Maybe Element.Element)
 getDocumentElement =
