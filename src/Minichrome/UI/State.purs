@@ -2,6 +2,7 @@ module Minichrome.UI.State
   ( Query(..)
   , State
   , MessagelineInput(..)
+  , LoadingState(..)
   , eval
   , initialState
   ) where
@@ -53,6 +54,8 @@ type Input = Unit
 
 data MessagelineInput = ExInput | SearchInput
 
+data LoadingState = Loaded | Loading
+
 derive instance eqMessagelineInput :: Eq MessagelineInput
 
 type State m = Record
@@ -69,6 +72,7 @@ type State m = Record
   , messagelineInputRef :: Halogen.RefLabel
   , messagelineInput :: Maybe.Maybe MessagelineInput
   , zoomFactor :: Number
+  , loadingState :: LoadingState
   )
 
 data Query a
@@ -78,6 +82,7 @@ data Query a
   | IPCMessage IPCUp.Message a
   | RunCommand Command.Command a
   | ShowMessage String a
+  | SetLoadingState LoadingState a
   | RunEx String a
   | LeaveEx a
   | SetSearch String a
@@ -111,6 +116,7 @@ initialState = initialURL <#> \address ->
   , messagelineInputRef: Halogen.RefLabel "messagelineInput"
   , messagelineInput: Maybe.Nothing
   , zoomFactor: 1.0
+  , loadingState: Loaded
   }
 
 eval :: forall m. AffClass.MonadAff m => Config.Config -> Query ~> DSL m m
@@ -123,6 +129,9 @@ eval config = case _ of
   (SetSequence str next) -> next <$ Halogen.modify_ _{ sequence = str }
 
   (ShowMessage message next) -> next <$ showMessage message
+
+  (SetLoadingState state next) -> next <$
+    Halogen.modify_ _{ loadingState = state }
 
   (RunEx cmd next) -> next <$ do
     Halogen.modify_ _{ messagelineInput = Maybe.Nothing }

@@ -6,6 +6,7 @@ module Minichrome.UI.Components.Modeline
 import Prelude
 
 import CSS as CSS
+import CSS.Common as CSSCommon
 import Halogen as Halogen
 import Halogen.HTML as HalogenHTML
 import Halogen.HTML.CSS as HalogenCSS
@@ -15,16 +16,19 @@ import Minichrome.Command.InputMode as InputMode
 import Minichrome.Config as Config
 import Minichrome.Temp.CSS as TCSS
 import Minichrome.UI.Components.ModelineSpacer as Spacer
+import Minichrome.UI.Components.ModelineLoadingIndicator as LoadingIndicator
 import Minichrome.UI.Components.ModelineModeIndicator as ModeIndicator
 import Minichrome.UI.Components.ModelinePageTitle as PageTitle
 import Minichrome.UI.Components.ModelinePageURL as PageURL
 import Minichrome.UI.Components.ModelineScrollPosition as ScrollPosition
+import Minichrome.UI.State as State
 
 type Props p =
   ( mode :: InputMode.Mode
   , title :: String
   , address :: String
   , position :: Int
+  , loadingState :: State.LoadingState
   | p
   )
 
@@ -46,6 +50,8 @@ field { mode } Config.ModeIndicator = flip ModeIndicator.modeIndicator mode
 field { title } Config.PageTitle = const $ PageTitle.pageTitle title
 field { address } Config.PageURL = flip PageURL.pageURL address
 field _ Config.Spacer =  const $ Spacer.spacer
+field { loadingState } Config.LoadingIndicator =
+  flip LoadingIndicator.loadingIndicator loadingState
 field { position } Config.ScrollPosition =
   const $ ScrollPosition.scrollPosition position
 
@@ -62,6 +68,7 @@ style config = HalogenCSS.style do
   CSS.background config.modeline.colors.bg
   CSS.color config.modeline.colors.fg
   CSS.display CSS.flex
+  CSS.alignItems CSSCommon.center
   CSS.flexFlow CSS.row CSS.nowrap
   CSS.borderTop CSS.solid (CSS.px 1.0) $ CSS.rgb 2 2 2
   CSS.borderBottom CSS.solid (CSS.px 1.0) $ CSS.rgb 2 2 2

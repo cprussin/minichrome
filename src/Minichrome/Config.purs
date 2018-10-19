@@ -31,6 +31,7 @@ data ModelineField
   | PageTitle
   | PageURL
   | Spacer
+  | LoadingIndicator
   | ScrollPosition
 
 type ColorSet = Record ( bg :: CSS.Color, fg :: CSS.Color )
@@ -50,6 +51,7 @@ type Config = Record
   , modeline :: Record
     ( fields :: Array ModelineField
     , colors :: ColorSet
+    , spinnerColor :: CSS.Color
     , url :: ColorSet
     , messageline :: ColorSet
     , modeIndicator :: Record
@@ -70,8 +72,16 @@ defaultConfig =
   , port: 42042
   , browser: Maybe.Nothing
   , modeline:
-    { fields: [ ModeIndicator, PageTitle, PageURL, Spacer, ScrollPosition ]
+    { fields:
+      [ ModeIndicator
+      , PageTitle
+      , PageURL
+      , Spacer
+      , LoadingIndicator
+      , ScrollPosition
+      ]
     , colors: { bg: CSS.darkgrey, fg: CSS.black }
+    , spinnerColor: CSS.blue
     , url: { bg: CSS.darkgrey, fg: CSS.blue }
     , messageline: { bg: CSS.lightgrey, fg: CSS.black }
     , modeIndicator:

@@ -30,6 +30,9 @@ pageDataURL url = "data:text/html;charset=UTF-8," <> pageData
       "<html style='width: 100%; height: 100%; margin: 0;'>" <>
         "<head>" <>
           "<meta charset='UTF-8' />" <>
+          "<style>" <>
+            "@keyframes spin { 100% { transform: rotate(360deg); } }" <>
+          "</style>" <>
         "</head>" <>
         "<body style='width: 100%; height: 100%; margin: 0;'>" <>
           "<script data-url='"<> url <>"'>" <>

@@ -28,6 +28,7 @@ type Props p =
   , position :: Int
   , message :: String
   , sequence :: String
+  , loadingState :: State.LoadingState
   , webviewRef :: Halogen.RefLabel
   , messagelineInput :: Maybe.Maybe State.MessagelineInput
   , messagelineInputRef :: Halogen.RefLabel
@@ -41,6 +42,8 @@ type Props p =
   , onSearchClear :: Maybe.Maybe (State.Query Unit)
   , onSearchEnter :: String -> Maybe.Maybe (State.Query Unit)
   , onSearchChange :: String -> Maybe.Maybe (State.Query Unit)
+  , onDidStartLoading :: Maybe.Maybe (State.Query Unit)
+  , onDidStopLoading :: Maybe.Maybe (State.Query Unit)
   | p
   )
 
@@ -71,4 +74,6 @@ webview props = Webview.webview
   , onDidNavigateInPage: props.onDidNavigateInPage
   , onNewWindow: props.onNewWindow
   , onIPCMessage: props.onIPCMessage
+  , onDidStartLoading: props.onDidStartLoading
+  , onDidStopLoading: props.onDidStopLoading
   }

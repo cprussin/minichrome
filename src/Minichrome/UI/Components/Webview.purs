@@ -25,6 +25,8 @@ type Props p =
   , onDidNavigateInPage :: String -> Maybe.Maybe (State.Query Unit)
   , onNewWindow :: String -> Maybe.Maybe (State.Query Unit)
   , onIPCMessage :: IPC.Message -> Maybe.Maybe (State.Query Unit)
+  , onDidStartLoading :: Maybe.Maybe (State.Query Unit)
+  , onDidStopLoading :: Maybe.Maybe (State.Query Unit)
   | p
   )
 
@@ -43,6 +45,8 @@ webview props =
     , HalogenElectron.onDidNavigateInPage $ _.url >>> props.onDidNavigateInPage
     , HalogenElectron.onNewWindow $ _.url >>> props.onNewWindow
     , HalogenElectron.onIPCMessage $ IPC.fromEvent >=> props.onIPCMessage
+    , HalogenElectron.onDidStartLoading $ const props.onDidStartLoading
+    , HalogenElectron.onDidStopLoading $ const props.onDidStopLoading
     ]
     [ ]
 

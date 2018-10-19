@@ -45,4 +45,8 @@ render config state =
     , onSearchClear: HalogenEvents.input_ State.CancelSearch unit
     , onSearchEnter: const $ HalogenEvents.input_ State.CommitSearch unit
     , onSearchChange: HalogenEvents.input State.SetSearch
+    , onDidStartLoading:
+      HalogenEvents.input_ (State.SetLoadingState State.Loading) unit
+    , onDidStopLoading:
+      HalogenEvents.input_ (State.SetLoadingState State.Loaded) unit
     }
