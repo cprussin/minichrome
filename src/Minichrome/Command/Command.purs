@@ -26,8 +26,10 @@ data Command
   | HardRefresh
   | LeaveEx
   | Navigate Int
+  | Next
   | Noop
   | OpenDevTools
+  | Previous
   | Refresh
   | Scroll Direction.Direction
   | Search String
@@ -49,8 +51,10 @@ instance showCommand :: Show Command where
     | count > 0 = "forward " <> show count
     | count < 0 = "back " <> show (-count)
     | otherwise = "refresh"
+  show Next = "next"
   show Noop = "noop"
   show OpenDevTools = "dev-tools"
+  show Previous = "previous"
   show Refresh = "refresh"
   show (Scroll direction) = "scroll " <> show direction
   show (Search str) = "search " <> str
@@ -74,7 +78,9 @@ help = String.joinWith "\n"
   , "  go <url>             go to the given URL"
   , "  hard-refresh         refresh the page, ignoring the cache"
   , "  leave-ex             close ex input"
+  , "  next                 focus the next element for the current mode"
   , "  noop                 do nothing"
+  , "  previous             focus the previous element for the current mode"
   , "  refresh              refresh the page"
   , "  scroll <direction>   scroll in the page"
   , "  search <term>        search for the given term in the page"
@@ -115,7 +121,9 @@ readTokens tokens = Either.note "No command" (tokens !! 0) >>= case _ of
   "go" -> commandNote tokens (tokens !! 1) <#> Go
   "hard-refresh" -> pure HardRefresh
   "leave-ex" -> pure LeaveEx
+  "next" -> pure Next
   "noop" -> pure Noop
+  "previous" -> pure Previous
   "refresh" -> pure Refresh
   "scroll" -> tokenTail tokens >>= Direction.readTokens <#> Scroll
   "search" -> tokenTail tokens <#> String.joinWith " " >>> Search

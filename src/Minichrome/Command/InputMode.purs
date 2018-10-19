@@ -19,7 +19,7 @@ import Web.DOM.ParentNode as ParentNode
 import Minichrome.Temp.DOM as DOM
 
 -- | The `Mode` type enumerates all possible input modes.
-data Mode = Normal | Insert | Follow | Select | Toggle | AV
+data Mode = Normal | Insert | Follow | Select | AV
 
 derive instance eqMode :: Eq Mode
 
@@ -28,7 +28,6 @@ instance showMode :: Show Mode where
   show Insert = "insert"
   show Follow = "follow"
   show Select = "select"
-  show Toggle = "toggle"
   show AV = "av"
 
 help :: String
@@ -37,8 +36,7 @@ help = String.joinWith "\n"
   , "  normal - scroll around, enter other modes, search, etc"
   , "  insert - provide keyboard input"
   , "  follow - follow links and buttons"
-  , "  select - change radio or select elements"
-  , "  toggle - toggle checkboxes"
+  , "  select - change radio, checkbox, or select elements"
   , "  av - control audio and video elements"
   ]
 
@@ -47,19 +45,17 @@ read "normal" = pure Normal
 read "insert" = pure Insert
 read "follow" = pure Follow
 read "select" = pure Select
-read "toggle" = pure Toggle
 read "av" = pure AV
 read badMode = Either.Left $ "Invalid mode: " <> badMode
 
 allModes :: Array Mode
-allModes = [ Normal, Insert, Follow, Select, Toggle, AV ]
+allModes = [ Normal, Insert, Follow, Select, AV ]
 
 selector :: Mode -> Maybe.Maybe ParentNode.QuerySelector
 selector Normal = Maybe.Nothing
 selector Insert = pure insertSelector
 selector Follow = pure followSelector
 selector Select = pure selectSelector
-selector Toggle = pure toggleSelector
 selector AV = pure avSelector
 
 modeFor :: Element.Element -> Effect.Effect Mode
@@ -67,7 +63,6 @@ modeFor element =
   ifM (DOM.matches insertSelector element) (pure Insert) $
   ifM (DOM.matches followSelector element) (pure Follow) $
   ifM (DOM.matches selectSelector element) (pure Select) $
-  ifM (DOM.matches toggleSelector element) (pure Toggle) $
   ifM (DOM.matches avSelector element) (pure AV) $
   pure Normal
 
@@ -110,11 +105,7 @@ selectSelector :: ParentNode.QuerySelector
 selectSelector = makeSelector
   [ "select"
   , "input[type=radio]"
-  ]
-
-toggleSelector :: ParentNode.QuerySelector
-toggleSelector = makeSelector
-  [ "input[type=checkbox]"
+  , "input[type=checkbox]"
   ]
 
 avSelector :: ParentNode.QuerySelector

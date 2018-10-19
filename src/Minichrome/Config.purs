@@ -57,7 +57,6 @@ type Config = Record
       , insert :: ColorSet
       , follow :: ColorSet
       , select :: ColorSet
-      , toggle :: ColorSet
       , av :: ColorSet
       )
     )
@@ -79,7 +78,6 @@ defaultConfig =
       { normal: { bg: CSS.blue, fg: CSS.white }
       , insert: { bg: CSS.magenta, fg: CSS.white }
       , select: { bg: CSS.magenta, fg: CSS.white }
-      , toggle: { bg: CSS.magenta, fg: CSS.white }
       , follow: { bg: CSS.green, fg: CSS.white }
       , av: { bg: CSS.red, fg: CSS.white }
       }
@@ -102,7 +100,6 @@ defaultConfig =
     , Keybinding [ Normal ] "i" $ SetMode Insert
     , Keybinding [ Normal ] "f" $ SetMode Follow
     , Keybinding [ Normal ] "s" $ SetMode Select
-    , Keybinding [ Normal ] "t" $ SetMode Toggle
     , Keybinding [ Normal ] "a" $ SetMode AV
     , Keybinding allModes "C-+" $ Zoom $ In 1
     , Keybinding allModes "C--" $ Zoom $ Out 1
@@ -112,5 +109,7 @@ defaultConfig =
     , Keybinding allModes "C-r" $ Refresh
     , Keybinding allModes "C-R" $ HardRefresh
     , Keybinding (Array.delete Normal allModes) "Escape" $ SetMode Normal
+    , Keybinding (Array.delete Normal allModes) "C-n" $ Next
+    , Keybinding (Array.delete Normal allModes) "C-p" $ Previous
     ]
   }

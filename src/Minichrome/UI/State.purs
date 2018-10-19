@@ -171,6 +171,18 @@ eval config = case _ of
 
   (RunCommand Command.Noop next) -> pure next
 
+  (RunCommand Command.Next next) -> next <$ do
+    mode <- Halogen.gets _.mode
+    unless (mode == InputMode.Normal) $
+      withWebviewElement \elem -> Halogen.liftEffect do
+        IPCDown.send elem $ IPCDown.FocusNextForMode mode
+
+  (RunCommand Command.Previous next) -> next <$ do
+    mode <- Halogen.gets _.mode
+    unless (mode == InputMode.Normal) $
+      withWebviewElement \elem -> Halogen.liftEffect do
+        IPCDown.send elem $ IPCDown.FocusPreviousForMode mode
+
   (RunCommand (Command.SetMode mode) next) -> next <$ do
     when (mode == InputMode.Normal) $
       withWebviewElement $ flip IPCDown.send IPCDown.Blur >>> Halogen.liftEffect

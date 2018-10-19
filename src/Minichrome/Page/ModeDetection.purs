@@ -1,44 +1,27 @@
-module Minichrome.Page.AutoMode
-  ( focusNextForMode
-  , installOnFocusHandler
-  , installOnNavigateHandler
+module Minichrome.Page.ModeDetection
+  ( installHandlers
   ) where
 
 import Prelude
 
-import Data.Array as Array
 import Data.Maybe as Maybe
 import Data.Options ((:=))
 import Effect as Effect
 import Web.DOM.Element as Element
-import Web.DOM.NodeList as NodeList
 import Web.Event.Event as Event
 import Web.HTML as HTML
 import Web.HTML.Event.EventTypes as EventTypes
-import Web.HTML.HTMLElement as HTMLElement
 import Web.HTML.Window as Window
 
 import Minichrome.Command.InputMode as InputMode
 import Minichrome.IPC.PageToUI as IPCUp
 import Minichrome.Page.Util as Util
 import Minichrome.Temp.Event as TEvent
-import Minichrome.Temp.Foldable as Foldable
-import Minichrome.Temp.Filterable as Filterable
 
-focusNextForMode :: InputMode.Mode -> Effect.Effect Unit
-focusNextForMode mode =
-  Util.getActiveElement >>= Maybe.maybe tryMoveFocus \elem -> do
-    currentElementMode <- InputMode.modeFor $ HTMLElement.toElement elem
-    unless (currentElementMode == mode) tryMoveFocus
-  where
-    tryMoveFocus =
-      Util.withAllElementsForMode mode $ NodeList.toArray >=> \nodes ->
-        if Array.null nodes then noElements else selectFirst nodes
-    noElements =
-      IPCUp.send $ IPCUp.ShowMessage $ "No elements for mode " <> show mode
-    selectFirst = firstVisible >=> Maybe.maybe mempty HTMLElement.focus
-    firstVisible = Foldable.findMapM $ HTMLElement.fromNode >>>
-      Maybe.maybe (pure Maybe.Nothing) (Filterable.maybeBoolM Util.isVisible)
+installHandlers :: Effect.Effect Unit
+installHandlers = do
+  installOnNavigateHandler
+  installOnFocusHandler
 
 installOnNavigateHandler :: Effect.Effect Unit
 installOnNavigateHandler = do
@@ -68,7 +51,10 @@ onFocus =
 onBlur :: Event.Event -> Effect.Effect Unit
 onBlur =
   Util.relatedFocusTarget >>> unlessIsNormal
-    (\target -> installOnBlurHandler target)
+    (\target -> do
+      InputMode.modeFor target >>= setMode
+      installOnBlurHandler target
+    )
     (\_ -> toNormalMode)
 
 setMode :: InputMode.Mode -> Effect.Effect Unit

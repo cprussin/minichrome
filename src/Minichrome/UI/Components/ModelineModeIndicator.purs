@@ -37,14 +37,12 @@ style config mode = HalogenCSS.style do
     InputMode.Insert -> config.modeline.modeIndicator.insert.bg
     InputMode.Follow -> config.modeline.modeIndicator.follow.bg
     InputMode.Select -> config.modeline.modeIndicator.select.bg
-    InputMode.Toggle -> config.modeline.modeIndicator.toggle.bg
     InputMode.AV -> config.modeline.modeIndicator.av.bg
   CSS.color $ case mode of
     InputMode.Normal -> config.modeline.modeIndicator.normal.fg
     InputMode.Insert -> config.modeline.modeIndicator.insert.fg
     InputMode.Follow -> config.modeline.modeIndicator.follow.fg
     InputMode.Select -> config.modeline.modeIndicator.select.fg
-    InputMode.Toggle -> config.modeline.modeIndicator.toggle.fg
     InputMode.AV -> config.modeline.modeIndicator.av.fg
 
 indicatorText :: InputMode.Mode -> String
@@ -52,5 +50,4 @@ indicatorText InputMode.Normal = "NORMAL"
 indicatorText InputMode.Insert = "INSERT"
 indicatorText InputMode.Follow = "FOLLOW"
 indicatorText InputMode.Select = "SELECT"
-indicatorText InputMode.Toggle = "TOGGLE"
 indicatorText InputMode.AV = "AV"

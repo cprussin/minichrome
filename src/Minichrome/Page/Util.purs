@@ -3,14 +3,16 @@ module Minichrome.Page.Util
   , eventTarget
   , getActiveElement
   , getDocumentElement
+  , isEqualElement
   , isVisible
   , relatedFocusTarget
   , throttle
-  , withAllElementsForMode
+  , withAllVisibleElementsForMode
   ) where
 
 import Prelude
 
+import Data.Array as Array
 import Data.Maybe as Maybe
 import Data.Options as Options
 import Data.Time.Duration as Duration
@@ -20,6 +22,7 @@ import Effect.Class as EffectClass
 import Effect.Ref as Ref
 import Web.DOM.Document as Document
 import Web.DOM.Element as Element
+import Web.DOM.Node as Node
 import Web.DOM.NodeList as NodeList
 import Web.DOM.ParentNode as ParentNode
 import Web.Event.Event as Event
@@ -39,16 +42,25 @@ isVisible element = do
   offsetHeight <- HTMLElement.offsetHeight element
   pure $ offsetWidth > 0.0 && offsetHeight > 0.0
 
-withAllElementsForMode
+isEqualElement
+  :: HTMLElement.HTMLElement
+  -> HTMLElement.HTMLElement
+  -> Effect.Effect Boolean
+isEqualElement elem =
+  HTMLElement.toNode >>> Node.isEqualNode (HTMLElement.toNode elem)
+
+withAllVisibleElementsForMode
   :: InputMode.Mode
-  -> (NodeList.NodeList -> Effect.Effect Unit)
+  -> (Array HTMLElement.HTMLElement -> Effect.Effect Unit)
   -> Effect.Effect Unit
-withAllElementsForMode =
+withAllVisibleElementsForMode =
   InputMode.selector >>> Maybe.maybe mempty \selector -> bind $
     HTML.window >>=
     Window.document >>=
     HTMLDocument.toParentNode >>>
-    ParentNode.querySelectorAll selector
+    ParentNode.querySelectorAll selector >>=
+    NodeList.toArray >>=
+    Array.mapMaybe HTMLElement.fromNode >>> Array.filterA isVisible
 
 getDocumentElement :: Effect.Effect (Maybe.Maybe Element.Element)
 getDocumentElement =

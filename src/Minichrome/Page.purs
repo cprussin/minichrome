@@ -4,31 +4,28 @@ module Minichrome.Page
 
 import Prelude
 
-import Data.Maybe as Maybe
 import Effect as Effect
-import Web.HTML.HTMLElement as HTMLElement
 
 import Minichrome.Command.Direction as Direction
 import Minichrome.IPC.UIToPage as IPCDown
-import Minichrome.Page.AutoMode as AutoMode
+import Minichrome.Page.FocusCommands as FocusCommands
+import Minichrome.Page.ModeDetection as ModeDetection
 import Minichrome.Page.ScrollingCommands as ScrollingCommands
 import Minichrome.Page.ScrollingPosition as ScrollingPosition
-import Minichrome.Page.Util as Util
 
-watchIPC :: Effect.Effect Unit
-watchIPC = IPCDown.subscribe $ case _ of
-  (IPCDown.Scroll (Direction.Up step)) -> ScrollingCommands.up step
-  (IPCDown.Scroll (Direction.Down step)) -> ScrollingCommands.down step
-  (IPCDown.Scroll (Direction.Left step)) -> ScrollingCommands.left step
-  (IPCDown.Scroll (Direction.Right step)) -> ScrollingCommands.right step
-  (IPCDown.Scroll Direction.Top) -> ScrollingCommands.toTop
-  (IPCDown.Scroll Direction.Bottom) -> ScrollingCommands.toBottom
-  (IPCDown.FocusNextForMode mode) -> AutoMode.focusNextForMode mode
-  IPCDown.Blur -> Util.getActiveElement >>= Maybe.maybe mempty HTMLElement.blur
+runIPC :: IPCDown.Message -> Effect.Effect Unit
+runIPC (IPCDown.Scroll (Direction.Up step)) = ScrollingCommands.up step
+runIPC (IPCDown.Scroll (Direction.Down step)) = ScrollingCommands.down step
+runIPC (IPCDown.Scroll (Direction.Left step)) = ScrollingCommands.left step
+runIPC (IPCDown.Scroll (Direction.Right step)) = ScrollingCommands.right step
+runIPC (IPCDown.Scroll Direction.Top) = ScrollingCommands.toTop
+runIPC (IPCDown.Scroll Direction.Bottom) = ScrollingCommands.toBottom
+runIPC (IPCDown.FocusNextForMode mode) = FocusCommands.nextForMode mode
+runIPC (IPCDown.FocusPreviousForMode mode) = FocusCommands.previousForMode mode
+runIPC IPCDown.Blur = FocusCommands.blur
 
 main :: Effect.Effect Unit
 main = do
-  watchIPC
-  AutoMode.installOnFocusHandler
-  AutoMode.installOnNavigateHandler
+  IPCDown.subscribe runIPC
+  ModeDetection.installHandlers
   ScrollingPosition.installScrollHandler
