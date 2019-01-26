@@ -3,6 +3,7 @@
 /.pulp-cache/
 /output/
 /build/
+/dist/
 /generated-docs/
 /.psc-package/
 /.psc*

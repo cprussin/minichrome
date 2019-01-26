@@ -2,9 +2,8 @@
   "name": "minichrome",
   "ignore": [
     "**/.*",
-    "node_modules",
-    "bower_components",
-    "output"
+    "output",
+    "dist"
   ],
   "dependencies": {
     "purescript-arrays": "^5.0.0",

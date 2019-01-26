@@ -18,10 +18,12 @@ import Minichrome.CLI.Server as Server
 -- | True if the argument array starts with a call to the `electron` executable
 -- | instead of the minichrome one.
 isDefaultElectronApp :: Array String -> Boolean
-isDefaultElectronApp argv = (firstArg >>= lastSegment) == Maybe.Just "electron"
+isDefaultElectronApp argv =
+  Maybe.maybe false isElectronExecutable $ firstArg >>= lastSegment
   where
     firstArg = argv !! 0
     lastSegment = String.split (String.Pattern "/") >>> Array.last
+    isElectronExecutable = String.contains (String.Pattern "electron")
 
 -- | If using the default `electron` executable, the second argument will be the
 -- | path to the electron app, which we don't care about.  Otherwise, we do care
