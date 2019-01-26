@@ -43,26 +43,26 @@ import Web.Internal.FFI as FFI
 foreign import data HTMLWebviewElement :: Type
 
 fromHTMLElement :: HTMLElement.HTMLElement -> Maybe.Maybe HTMLWebviewElement
-fromHTMLElement = FFI.unsafeReadProtoTagged "webview"
+fromHTMLElement = FFI.unsafeReadProtoTagged "WebView"
 
 fromElement :: DOM.Element -> Maybe.Maybe HTMLWebviewElement
-fromElement = FFI.unsafeReadProtoTagged "webview"
+fromElement = FFI.unsafeReadProtoTagged "WebView"
 
 fromNode :: DOM.Node -> Maybe.Maybe HTMLWebviewElement
-fromNode = FFI.unsafeReadProtoTagged "webview"
+fromNode = FFI.unsafeReadProtoTagged "WebView"
 
 fromChildNode :: DOM.ChildNode -> Maybe.Maybe HTMLWebviewElement
-fromChildNode = FFI.unsafeReadProtoTagged "webview"
+fromChildNode = FFI.unsafeReadProtoTagged "WebView"
 
 fromNonDocumentTypeChildNode :: DOM.NonDocumentTypeChildNode ->
                                 Maybe.Maybe HTMLWebviewElement
-fromNonDocumentTypeChildNode = FFI.unsafeReadProtoTagged "webview"
+fromNonDocumentTypeChildNode = FFI.unsafeReadProtoTagged "WebView"
 
 fromParentNode :: DOM.ParentNode -> Maybe.Maybe HTMLWebviewElement
-fromParentNode = FFI.unsafeReadProtoTagged "webview"
+fromParentNode = FFI.unsafeReadProtoTagged "WebView"
 
 fromEventTarget :: EventTarget.EventTarget -> Maybe.Maybe HTMLWebviewElement
-fromEventTarget = FFI.unsafeReadProtoTagged "webview"
+fromEventTarget = FFI.unsafeReadProtoTagged "WebView"
 
 toHTMLElement :: HTMLWebviewElement -> HTMLElement.HTMLElement
 toHTMLElement = Coerce.unsafeCoerce
