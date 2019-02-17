@@ -6,7 +6,6 @@
   "main": "index.js",
   "devDependencies": {
     "babel-minify": "^0.5.0",
-    "bower": "^1.8.7",
     "electron": "3.0.0-beta.5",
     "electron-packager": "^12.1.2",
     "pulp": "^12.3.1",

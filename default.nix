@@ -23,6 +23,7 @@ pkgs.stdenv.mkDerivation {
     pkgs.yarn
     pkgs.purescript
     pkgs.electron
+    pkgs.psc-package
   ];
   src = ./.;
   preConfigure = setup;

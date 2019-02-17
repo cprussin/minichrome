@@ -7,7 +7,7 @@ MAKEFLAGS += --warn-undefined-variables
 YARN := yarn
 NPX := npx
 PULP := pulp
-BOWER := bower
+PSCPACKAGE := psc-package
 ELECTRON := electron
 MINIFY := minify
 ELECTRON-PACKAGER := electron-packager
@@ -17,14 +17,14 @@ BUILD_OPTIONS := -- --stash --censor-lib --strict
 
 # Package manifest files
 PACKAGEJSON := package.json
-BOWERJSON := bower.json
+PSCPACKAGEJSON := psc-package.json
 
 # Various input directories
 SRCPATH := ./src
 TESTPATH := ./test
 
 # Various output directories
-COMPONENTS := ./bower_components
+PSCPACKAGES := ./.psc-package
 MODULES := ./node_modules
 OUTPUT := ./output
 DIST := ./dist
@@ -39,11 +39,11 @@ $(MODULES): $(PACKAGEJSON)
 	$(YARN) --cache-folder $(MODULES) install
 
 #
-$(COMPONENTS): $(BOWERJSON) $(MODULES)
-	$(BOWER) install
+$(PSCPACKAGES): $(PSCPACKAGEJSON)
+	$(PSCPACKAGE) install
 
 # Build the source files
-$(OUTPUT): $(SOURCES) $(COMPONENTS) $(MODULES)
+$(OUTPUT): $(SOURCES) $(PSCPACKAGES) $(MODULES)
 	$(PULP) build \
 	  --src-path $(SRCPATH) \
 	  --build-path $(OUTPUT) \
@@ -57,19 +57,19 @@ $(DIST):
 	mkdir $(DIST)
 $(DIST)/package.json: $(DIST) $(PACKAGEJSON)
 	cp $(PACKAGEJSON) $(DIST)/package.json
-$(OUTPUT)/index.js: $(OUTPUT) $(COMPONENTS) $(MODULES)
+$(OUTPUT)/index.js: $(OUTPUT) $(PSCPACKAGES) $(MODULES)
 	$(PULP) build \
 	  --main Minichrome.CLI \
 	  --to $(OUTPUT)/index.js
 $(DIST)/index.js: $(DIST) $(OUTPUT)/index.js $(MODULES)
 	$(MINIFY) $(OUTPUT)/index.js -o $(DIST)/index.js
-$(OUTPUT)/ui.js: $(OUTPUT) $(COMPONENTS) $(MODULES)
+$(OUTPUT)/ui.js: $(OUTPUT) $(PSCPACKAGES) $(MODULES)
 	$(PULP) build \
 	  --main Minichrome.UI \
 	  --to $(OUTPUT)/ui.js
 $(DIST)/ui.js: $(DIST) $(OUTPUT)/ui.js $(MODULES)
 	$(MINIFY) $(OUTPUT)/ui.js -o $(DIST)/ui.js
-$(OUTPUT)/page.js: $(OUTPUT) $(COMPONENTS) $(MODULES)
+$(OUTPUT)/page.js: $(OUTPUT) $(PSCPACKAGES) $(MODULES)
 	$(PULP) build \
 	  --main Minichrome.Page \
 	  --to $(OUTPUT)/page.js
@@ -89,7 +89,7 @@ install: $(DIST)/minichrome-linux-x64
 	install -m755 -D $(DIST)/minichrome-linux-x64/minichrome $(prefix)/bin/minichrome
 
 # Run the test suite
-test: $(OUTPUT) $(TESTSOURCES) $(COMPONENTS) $(MODULES)
+test: $(OUTPUT) $(TESTSOURCES) $(PSCPACKAGES) $(MODULES)
 	$(PULP) test \
 	  --src-path $(SRCPATH) \
 	  --test-path $(TESTPATH) \
@@ -101,14 +101,14 @@ run: $(OUTPUT)
 	$(ELECTRON) .
 
 # Launch a repl with all modules loaded
-repl: $(SOURCES) $(TESTSOURCES) $(COMPONENTS) $(MODULES)
+repl: $(SOURCES) $(TESTSOURCES) $(PSCPACKAGES) $(MODULES)
 	$(PULP) repl \
 	  --src-path $(SRCPATH) \
 	  --test-path $(TESTPATH)
 
 # Remove all make output from the source tree
 clean:
-	rm -rf $(OUTPUT) $(DIST) $(COMPONENTS) $(MODULES)
+	rm -rf $(OUTPUT) $(DIST) $(PSCPACKAGES) $(MODULES)
 
 # Print out a description of all the supported tasks
 help:

@@ -90,8 +90,8 @@ router config request@{ method, path, body } =
     _, _ -> badRequest request
 
 -- | Start the Electron app and HTTP server.
-start :: Config.Config -> HTTPure.ServerM
-start config = App.onReady do
+start :: Config.Config -> Effect.Effect Unit
+start config = App.onReady $ void do
   App.onWindowAllClosed mempty
   HTTPure.serve config.port (router config) $
-    Console.log $ "Minichrome server started!"
+    Console.log "Minichrome server started!"

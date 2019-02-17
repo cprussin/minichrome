@@ -1,0 +1,29 @@
+{
+  "name": "minichrome",
+  "set": "minichrome",
+  "source": "https://github.com/cprussin/package-sets.git",
+  "depends": [
+    "aff",
+    "arrays",
+    "console",
+    "css",
+    "effect",
+    "foldable-traversable",
+    "halogen",
+    "halogen-css",
+    "httpure",
+    "maybe",
+    "node-child-process",
+    "node-http",
+    "node-process",
+    "options",
+    "prelude",
+    "psci-support",
+    "strings",
+    "tuples",
+    "web-dom",
+    "web-events",
+    "web-html",
+    "web-uievents"
+  ]
+}
