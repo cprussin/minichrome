@@ -14,6 +14,7 @@
     "httpure",
     "maybe",
     "node-child-process",
+    "node-electron",
     "node-http",
     "node-process",
     "options",
