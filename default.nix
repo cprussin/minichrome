@@ -1,35 +1,28 @@
 {
-  nodejsVersion ? "10.14.2",
-  yarnVersion ? "1.12.3",
-  purescriptVersion ? "0.12.1",
-  electronVersion ? "3.0.0-beta.5",
-  nixjs ? fetchTarball "https://github.com/cprussin/nixjs/archive/0.0.4.tar.gz",
+  nodejs ? "10.15.1",
+  yarn ? "1.12.3",
+  purescript ? "0.12.2",
+  electron ? "3.0.0-beta.5",
+  nixjs-version ? "0.0.7",
+  nixjs ? fetchTarball "https://github.com/cprussin/nixjs/archive/${nixjs-version}.tar.gz",
   nixpkgs ? <nixpkgs>
 }:
 
-with import nixpkgs {
-  overlays = [
-    (import nixjs {
-      nodejs = nodejsVersion;
-      yarn = yarnVersion;
-      purescript = purescriptVersion;
-      electron = electronVersion;
-    })
-  ];
-};
 
 let
+  nixjs-overlay = import nixjs { inherit nodejs yarn purescript electron; };
+  pkgs = import nixpkgs { overlays = [ nixjs-overlay ]; };
   setup = "export PATH=$PATH:$PWD/node_modules/.bin";
 in
 
-stdenv.mkDerivation {
+pkgs.stdenv.mkDerivation {
   name = "minichrome";
   buildInputs = [
-    git
-    nodejs
-    yarn
-    purescript
-    electron
+    pkgs.git
+    pkgs.nodejs
+    pkgs.yarn
+    pkgs.purescript
+    pkgs.electron
   ];
   src = ./.;
   preConfigure = setup;
